@@ -1,35 +1,37 @@
 package main
 
 import (
-	"fmt"
 	"crypto/rc4"
+	"fmt"
 	"os"
 )
 
 func main() {
-	//rc4, err := rc4.NewCipher()
-	//strings.
-	key := []byte("12345")
-	src := []byte("wo shi ming wen")
-	encrypt := make([]byte, len(src))
-
-	c, err := rc4.NewCipher(key)
-	if (err != nil) {
+	key := []byte("this is key")
+	src := []byte("this is plain text")
+	en, err := encrypt(key, src)
+	if err != nil {
 		os.Exit(1)
 	}
-
-	c.XORKeyStream(encrypt, src)
 	fmt.Println("key:", key)
 	fmt.Println("src:", src)
-	fmt.Println("encrypt:", encrypt)
+	fmt.Println("encrypt:", en)
 
-	decrypt := make([]byte, len(encrypt))
-
-	c, err = rc4.NewCipher(key)	// 原来的那个cipher是不能接着使用的，即使Reset也不行，就是说，cipher只能用一次
-
-	c.XORKeyStream(decrypt, encrypt)
+	decrypt, err := encrypt(key, en)
+	if err != nil {
+		os.Exit(1)
+	}
 	fmt.Println("decrypt:", decrypt)
 	fmt.Println("decrypt:", string(decrypt))
 
+}
 
+func encrypt(key, plain []byte) ([]byte, error) {
+	c, err := rc4.NewCipher(key) // cipher不能重复使用的，即使Reset也不行，就是说，cipher只能用一次
+	if err != nil {
+		return nil, err
+	}
+	en := make([]byte, len(plain))
+	c.XORKeyStream(en, plain)
+	return en, nil
 }
