@@ -1,7 +1,6 @@
 package decoder
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/phpor/go/rdb"
