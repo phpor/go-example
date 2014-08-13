@@ -12,6 +12,7 @@ import (
 
 	"github.com/phpor/go/rdb/crc64"
 )
+const Version = 6
 
 // A Decoder must be implemented to parse a RDB file.
 type Decoder interface {
