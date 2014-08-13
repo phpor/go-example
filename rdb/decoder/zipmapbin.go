@@ -8,17 +8,17 @@ import (
 	"encoding/binary"
 )
 
-type zipmapbin struct {
+type Zipmapbin struct {
 	db int
 	i  int
 	rdb.NopDecoder
 }
 
-func (p *zipmapbin) StartDatabase(n int) {
+func (p *Zipmapbin) StartDatabase(n int) {
 	p.db = n
 }
 
-func (p *zipmapbin) Hset(key, field, value []byte) {
+func (p *Zipmapbin) Hset(key, field, value []byte) {
 	lenByte := make([]byte, 4)
 	binary.BigEndian.PutUint32(lenByte, uint32(len(key)))
 	os.Stdout.Write(lenByte)
