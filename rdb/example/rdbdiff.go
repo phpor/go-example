@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cupcake/rdb"
-	"github.com/cupcake/rdb/nopdecoder"
+	"github.com/phpor/go/rdb"
 )
 
 type decoder struct {
