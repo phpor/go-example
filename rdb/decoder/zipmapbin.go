@@ -30,4 +30,5 @@ func (p *Zipmapbin) Hset(key, field, value []byte) {
 	binary.BigEndian.PutUint32(lenByte, uint32(len(value)))
 	os.Stdout.Write(lenByte)
 	os.Stdout.Write(value)
+	p.i++
 }
