@@ -1,20 +1,3 @@
-Skip to content
- 
-This repository 
-Explore
-Gist
-Blog
-Help
-phpor phpor
- 
- 
-6  Watch 
-  Unstar 25
- Fork 4cupcake/rdb
- branch: master   rdb / crc64 / crc64.go
-Jonathan Rudenberg titanous on 15 May 2013 Tweak crc64 package description
-1 contributor
-65 lines (53 sloc)  6.576 kb RawBlameHistory   
 // Copyright 2009 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -79,4 +62,3 @@ func (d *digest) Sum64() uint64  { return d.crc }
 func (d *digest) BlockSize() int { return 1 }
 func (d *digest) Size() int      { return 8 }
 func (d *digest) Reset()         { d.crc = 0 }
-Status API Training Shop Blog About © 2014 GitHub, Inc. Terms Privacy Security Contact 
