@@ -12,7 +12,7 @@ import (
 type decoder struct {
 	db int
 	i  int
-	nopdecoder.NopDecoder
+	rdb.NopDecoder
 }
 
 func (p *decoder) StartDatabase(n int) {
