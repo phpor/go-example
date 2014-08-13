@@ -19,10 +19,12 @@ func (p *Diff) StartDatabase(n int) {
 
 func (p *Diff) Set(key, value []byte, expiry int64) {
 	fmt.Printf("db=%d %q -> %q\n", p.db, key, value)
+	p.i++
 }
 
 func (p *Diff) Hset(key, field, value []byte) {
 	fmt.Printf("db=%d %q . %q -> %q\n", p.db, key, field, value)
+	p.i++
 }
 
 func (p *Diff) Sadd(key, member []byte) {
