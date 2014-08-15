@@ -14,6 +14,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+	defer conn.Close()
 	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
 	reader := bufio.NewReader(conn)
 	buf := make([]byte, 1024)
