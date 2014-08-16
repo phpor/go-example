@@ -39,4 +39,16 @@ func main(){
 
 	arr := [2][2]int{{11, 12}, {21, 22}}        // 课本上说，这个是数组，不是切片，但是很多时候用起来和切片一样一样的
 	fmt.Printf("%T : %v :%v\n", arr, arr, arr[1])
+
+	//slice 的追加
+	s1 := []string{"a", "b"}
+	s2 := []string{"c", "d"}
+	fmt.Printf("&s1: %p\n", s1)
+
+	// 一般会这么写：
+	s1 = append(s1, s2...)
+	fmt.Printf("%p: %v \tcap(s1):%d\n", s1, s1, cap(s1))    // s1的地址可发生变化，也可能不变化，主要取决于s1的剩余容量够不够放下s2
+
+	s3 := append(s1, s2...)    // 注意：追加的是slice中的元素，而不是slice，所以这里用 ... 语法，将slice结构成多个元素参数
+	fmt.Printf("%p: %v\n%p: %v\n", s1, s1, s3, s3)
 }
