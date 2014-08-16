@@ -7,6 +7,7 @@ import (
 	"code.google.com/p/go-charset/charset"
 	_ "code.google.com/p/go-charset/data"
 	"unicode/utf8"
+	"os"
 )
 
 func main() {
@@ -27,7 +28,17 @@ func main() {
 
 	pice := []int32{20, 30, 40, 90}
 	sss := string(pice) // string 似乎执行了内存拷贝，但是不会涉及到字符集的处理（转换或校验）
-	fmt.Printf("%T:%p %T:%p:%d", pice, pice, sss, &sss, len(sss)) // 为什么打印字符串变量的地址还需要取地址符
+	fmt.Printf("%T:%p %T:%p:%d\n", pice, pice, sss, &sss, len(sss)) // 为什么打印字符串变量的地址还需要取地址符
 
-
+	tr, err := charset.TranslatorTo("windows-1252") //需要检查字符集列表
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	_, gbk, err2 := tr.Translate([]byte("utf-8汉字"), true)
+	if err2 != nil {
+		fmt.Println(err2)
+		os.Exit(1)
+	}
+	fmt.Println(gbk)
 }
