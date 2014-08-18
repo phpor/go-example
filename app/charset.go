@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-	"io/ioutil"
 	"code.google.com/p/go-charset/charset"
 	_ "code.google.com/p/go-charset/data"
-	"unicode/utf8"
+	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
+	"unicode/utf8"
 )
 
 func main() {
@@ -20,14 +20,14 @@ func main() {
 	fmt.Println(len(s2))                    // => 13
 	fmt.Println(utf8.RuneCountInString(s2)) // => 9
 	fmt.Println(utf8.ValidString(s2))       // => true
-	fmt.Println(utf8.ValidString(s))       // => false
+	fmt.Println(utf8.ValidString(s))        // => false
 	fmt.Printf("%T|%#v\n", s, s)            // 注意 %v 与 %#v 的区别
 
 	ss := "This is not utf-8 string \xa1"
-	fmt.Println(utf8.ValidString(ss))       // => false
+	fmt.Println(utf8.ValidString(ss)) // => false
 
 	pice := []int32{20, 30, 40, 90}
-	sss := string(pice) // string 似乎执行了内存拷贝，但是不会涉及到字符集的处理（转换或校验）
+	sss := string(pice)                                             // string 似乎执行了内存拷贝，但是不会涉及到字符集的处理（转换或校验）
 	fmt.Printf("%T:%p %T:%p:%d\n", pice, pice, sss, &sss, len(sss)) // 为什么打印字符串变量的地址还需要取地址符
 
 	tr, err := charset.TranslatorTo("windows-1252") //需要检查字符集列表

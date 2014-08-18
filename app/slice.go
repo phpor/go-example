@@ -8,13 +8,11 @@ import (
 func slice_is_readonly(ss []string) {
 	fmt.Printf("ss in func: %p\n", ss) // slice 通过参数传递时是传地址的
 }
-func main(){
+func main() {
 	s := "hello_world"
-	fmt.Println(s[:5])	//字符串默认可以当slice使用
+	fmt.Println(s[:5]) //字符串默认可以当slice使用
 	fmt.Println(s[5:6])
 	fmt.Println(s[6:])
-
-
 
 	ss := []string{"hello", "word"}
 	fmt.Printf("ss in main: %p\n", ss)
@@ -34,10 +32,9 @@ func main(){
 	fmt.Println(ssss)
 	fmt.Println(ssss[1])
 	ssss[1] = "A2"
-	fmt.Printf("%T :%p :%s\n", ssss, ssss, ssss)    //slice 是可以被修改的
+	fmt.Printf("%T :%p :%s\n", ssss, ssss, ssss) //slice 是可以被修改的
 
-
-	arr := [2][2]int{{11, 12}, {21, 22}}        // 课本上说，这个是数组，不是切片，但是很多时候用起来和切片一样一样的
+	arr := [2][2]int{{11, 12}, {21, 22}} // 课本上说，这个是数组，不是切片，但是很多时候用起来和切片一样一样的
 	fmt.Printf("%T : %v :%v\n", arr, arr, arr[1])
 
 	//slice 的追加
@@ -47,8 +44,8 @@ func main(){
 
 	// 一般会这么写：
 	s1 = append(s1, s2...)
-	fmt.Printf("%p: %v \tcap(s1):%d\n", s1, s1, cap(s1))    // s1的地址可发生变化，也可能不变化，主要取决于s1的剩余容量够不够放下s2
+	fmt.Printf("%p: %v \tcap(s1):%d\n", s1, s1, cap(s1)) // s1的地址可发生变化，也可能不变化，主要取决于s1的剩余容量够不够放下s2
 
-	s3 := append(s1, s2...)    // 注意：追加的是slice中的元素，而不是slice，所以这里用 ... 语法，将slice结构成多个元素参数
+	s3 := append(s1, s2...) // 注意：追加的是slice中的元素，而不是slice，所以这里用 ... 语法，将slice结构成多个元素参数
 	fmt.Printf("%p: %v\n%p: %v\n", s1, s1, s3, s3)
 }

@@ -2,12 +2,12 @@ package main
 
 import "fmt"
 import (
-	"github.com/phpor/goexample/sso"
 	"encoding/json"
+	"github.com/phpor/goexample/sso"
 )
 
 func main() {
-	content,err := sso.Login("ssologin4@sina.com", "ssologin5")
+	content, err := sso.Login("ssologin4@sina.com", "ssologin5")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -20,7 +20,7 @@ func main() {
 
 	fmt.Println(f)
 	m := f.(map[string]interface{})
-	for k,v := range m {
+	for k, v := range m {
 		fmt.Println(k, v)
 	}
 }
