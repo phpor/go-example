@@ -1,3 +1,4 @@
+// 参考： http://blog.golang.org/go-maps-in-action
 package main
 
 import "fmt"
@@ -25,4 +26,6 @@ func main() {
 	if i3, exists := m2["j"]; exists {
 		fmt.Println("m2[j]: ", i3)
 	}
+
+	// 可以有更复杂的map，如： map[string]map[string]int
 }
