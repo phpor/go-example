@@ -9,12 +9,12 @@ import (
 	"bytes"
 )
 
-type Response1 struct {
-	Page   int
+type Response1 struct {    // 字段之间换行(或分号)分隔而不是逗号分隔，相同类型的N个字段（如果为了省略书写前者的类型，可以逗号分隔）
+Page   int
 	Fruits []string
 }
-type Response2 struct {
-	Page   int      `json:"page"`
+type Response2 struct {    // 关于最后一个字符串的语法定义参考： http://golang.org/ref/spec#StructType
+Page   int      `json:"page"`
 	Fruits []string `json:"fruits"`
 }
 
