@@ -1,5 +1,6 @@
 package main
 
+// 参考 net/http/doc.go
 import (
 	"fmt"
 	"net/http"
@@ -22,4 +23,6 @@ func main() {
 
 		})
 	http.ListenAndServe(":"+port, nil)
+
+	//http.ListenAndServeTLS() 可以提供https服务
 }
