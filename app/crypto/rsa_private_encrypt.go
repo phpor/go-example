@@ -1,5 +1,12 @@
 package main
 
+// 源码参考：
+// 1. http://play.golang.org/p/dGTl9siO8E
+// 2. http://play.golang.org/p/jrqN2KnUEM
+// 3. 上面链接来自该讨论： https://groups.google.com/forum/#!topic/Golang-Nuts/Vocj33WNhJQ
+
+// 关于rsa算法的rfc： http://tools.ietf.org/html/rfc2313
+
 // 公钥解密如何实现？
 
 import (
@@ -18,20 +25,21 @@ var (
 	ErrEncryption = errors.New("encryption error")
 )
 
-//var key = map[string]string{
-//	"pub":`-----BEGIN PUBLIC KEY-----
-//MDMwDQYJKoZIhvcNAQEBBQADIgAwHwIYLMlPJojwz6CG59dhqBThmSvzDQSqCTER
-//AgMBAAE=
-//-----END PUBLIC KEY-----`,
-//	"pri":`-----BEGIN RSA PRIVATE KEY-----
-//MIGCAgEAAhgsyU8miPDPoIbn12GoFOGZK/MNBKoJMRECAwEAAQIYEZ21RmEC54gq
-//yDKNYMSf3sfLnpNKtHApAgxsDM9OncVcR4KpFJMCDGoccYPcO1TysFNuSwIMSB8w
-//zTgQga0V8QhTAgxCcq1jNXayK4fftyECDB1jgcnOU0DVWmJfFg==
-//-----END RSA PRIVATE KEY-----`,
-//}
+var key = map[string]string{
+	"pub": `-----BEGIN PUBLIC KEY-----
+MDMwDQYJKoZIhvcNAQEBBQADIgAwHwIYLMlPJojwz6CG59dhqBThmSvzDQSqCTER
+AgMBAAE=
+-----END PUBLIC KEY-----`,
+	"pri": `-----BEGIN RSA PRIVATE KEY-----
+MIGCAgEAAhgsyU8miPDPoIbn12GoFOGZK/MNBKoJMRECAwEAAQIYEZ21RmEC54gq
+yDKNYMSf3sfLnpNKtHApAgxsDM9OncVcR4KpFJMCDGoccYPcO1TysFNuSwIMSB8w
+zTgQga0V8QhTAgxCcq1jNXayK4fftyECDB1jgcnOU0DVWmJfFg==
+-----END RSA PRIVATE KEY-----`,
+}
 
 func PrivateEncrypt(priv *rsa.PrivateKey, data []byte) (enc []byte, err error) {
-
+	//	fmt.Println(priv)
+	fmt.Println(data)
 	k := (priv.N.BitLen() + 7) / 8
 	tLen := len(data)
 	// rfc2313, section 8:
@@ -45,12 +53,15 @@ func PrivateEncrypt(priv *rsa.PrivateKey, data []byte) (enc []byte, err error) {
 	for i := 2; i < k-tLen-1; i++ {
 		em[i] = 0xff
 	}
+	fmt.Println(em)
 	copy(em[k-tLen:k], data)
+	fmt.Println(em)
 	c := new(big.Int).SetBytes(em)
 	if c.Cmp(priv.N) > 0 {
 		err = ErrEncryption
 		return
 	}
+	fmt.Println(c, priv.D, priv.N)
 	var m *big.Int
 	var ir *big.Int
 	if priv.Precomputed.Dp == nil {
@@ -91,7 +102,7 @@ func PrivateEncrypt(priv *rsa.PrivateKey, data []byte) (enc []byte, err error) {
 	return
 }
 
-func main() {
+func verify_private_encrypt() {
 	key_file := "d:\\temp\\rsa.key"
 	data_file := "d:\\temp\\tmp.txt"
 
@@ -102,12 +113,93 @@ func main() {
 	// in.txt is what to encode
 	kt, _ := ioutil.ReadFile(key_file)
 	e, _ := ioutil.ReadFile(data_file)
-
 	block, _ := pem.Decode(kt)
 	privkey, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
 	encData, _ := PrivateEncrypt(privkey, e)
 	fmt.Println(encData)
+
 	fmt.Println(o)
 	fmt.Println(string(o) == string(encData))
 }
+func enc(text string) {
+	fmt.Println(text)
+	data := []byte(text)
+	block, _ := pem.Decode([]byte(key["pri"]))
+	privkey, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
+	encData, _ := PrivateEncrypt(privkey, data)
+	fmt.Println(encData)
 
+	block2, _ := pem.Decode([]byte(key["pub"]))
+	pubinterface, err := x509.ParsePKIXPublicKey(block2.Bytes)
+	if err != nil {
+		println(err)
+		return
+	}
+	plaindata, err := PublicDecrypt(pubinterface.(*rsa.PublicKey), encData)
+	fmt.Println(string(plaindata))
+
+}
+func main() {
+
+	enc("abcd")
+	enc("abcdef")
+	enc("12345")
+
+}
+func verify_public_decrypt() {
+	//	pubInterface,_ := x509.ParsePKIXPublicKey(block.Bytes)
+	//	plain,_ := PublicDecrypt(pubInterface.(*rsa.PublicKey), encData)
+	//	println(string(plain))
+}
+func PublicDecrypt(pubkey *rsa.PublicKey, enc []byte) ([]byte, error) {
+	k := (pubkey.N.BitLen() + 7) / 8
+	if k != len(enc) {
+		return nil, errors.New("enc data length error")
+	}
+	m := new(big.Int).SetBytes(enc)
+
+	if m.Cmp(pubkey.N) > 0 {
+		return nil, errors.New("enc data too long")
+	}
+	m.Exp(m, big.NewInt(int64(pubkey.E)), pubkey.N)
+
+	d := leftPad(m.Bytes(), k)
+
+	if d[0] != 0 {
+		return nil, errors.New("data broken, first byte is not zero")
+	}
+
+	if d[1] != 0 && d[1] != 1 {
+		return nil, errors.New("data is not encrypt by private key")
+	}
+
+	fmt.Println(d)
+	fmt.Println(len(d))
+
+	var i = 2
+	for ; i < len(d); i++ {
+		if d[i] == 0 {
+			break
+		}
+	}
+	i++
+	if i == len(d) {
+		return nil, nil
+	}
+
+	fmt.Println(d[i:])
+	return d[i:], nil
+}
+
+// copy from crypto/rsa/rsa.go
+// leftPad returns a new slice of length size. The contents of input are right
+// aligned in the new slice.
+func leftPad(input []byte, size int) (out []byte) {
+	n := len(input)
+	if n > size {
+		n = size
+	}
+	out = make([]byte, size)
+	copy(out[len(out)-n:], input)
+	return
+}
