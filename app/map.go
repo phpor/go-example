@@ -13,9 +13,12 @@ func main() {
 	//m3["k"] = 3	// 这里虽没有语法错误，但是，会有运行时错误的
 	m3 = m1
 	fmt.Println(m3)
-
+	i2 := 2
 	i1 := m1["k"]
-	i2 := m2["j"]        // key 不存在是， i2被初始化为默认值 0
+	//	i2,_ = m2["j"]        // key 不存在是， i2被初始化为默认值 0
+	if v, exists := m2["j"]; exists {
+		i2 = v
+	}
 
 	fmt.Println("i1,i2: ", i1, i2)
 
