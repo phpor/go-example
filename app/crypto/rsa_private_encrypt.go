@@ -142,8 +142,9 @@ func enc(text string) {
 func main() {
 
 	enc("abcd")
-	enc("abcdef")
-	enc("12345")
+	enc("abcd")
+	//	enc("abcdef")
+	//	enc("12345")
 
 }
 func verify_public_decrypt() {
