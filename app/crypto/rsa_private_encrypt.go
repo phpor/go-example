@@ -44,6 +44,7 @@ func PrivateEncrypt(priv *rsa.PrivateKey, data []byte) (enc []byte, err error) {
 	tLen := len(data)
 	// rfc2313, section 8:
 	// The length of the data D shall not be more than k-11 octets
+	// 参考 rsa.EncryptPKCS1v15(..) 了解如何使用随机数的
 	if tLen > k-11 {
 		err = ErrInputSize
 		return
@@ -145,8 +146,9 @@ func enc(text string) {
 func main() {
 
 	enc("abcd")
-	enc("abcdef")
-	enc("12345")
+	enc("abcd")
+	//	enc("abcdef")
+	//	enc("12345")
 
 }
 func verify_public_decrypt() {

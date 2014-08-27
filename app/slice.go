@@ -1,3 +1,4 @@
+// 参考资料： http://www.tuicool.com/articles/rYVf2e	（写的比较到位）
 package main
 
 import (
@@ -34,9 +35,16 @@ func main() {
 	ssss[1] = "A2"
 	fmt.Printf("%T :%p :%s\n", ssss, ssss, ssss) //slice 是可以被修改的
 
+	println("slice or array:")
 	arr := [2][2]int{{11, 12}, {21, 22}} // 课本上说，这个是数组，不是切片，但是很多时候用起来和切片一样一样的
+	arr2 := [...]int{1, 2, 3}            // 这是个数组
+	s6 := []int{1, 2, 3}                 // 这是个切片
+	//var s7 []int = [...]int{1,2,3}		  // 这个赋值是错误的，类型不同，生命的是切片，赋值的是数组
 	fmt.Printf("%T : %v :%v\n", arr, arr, arr[1])
+	fmt.Printf("%T : %v :%v\n", arr2, arr2, arr2[1])
+	fmt.Printf("%T : %v :%v\n", s6, s6, s6[1])
 
+	println("append to slice:")
 	//slice 的追加
 	s1 := []string{"a", "b"}
 	s2 := []string{"c", "d"}
