@@ -131,12 +131,15 @@ func enc(text string) {
 	fmt.Println(encData)
 
 	block2, _ := pem.Decode([]byte(key["pub"]))
-	pubinterface, err := x509.ParsePKIXPublicKey(block2.Bytes)
-	if err != nil {
-		println(err)
+	pubinterface, rest := x509.ParsePKIXPublicKey(block2.Bytes)
+	if rest != nil {
+		println("parse public key fail")
 		return
 	}
 	plaindata, err := PublicDecrypt(pubinterface.(*rsa.PublicKey), encData)
+	if err != nil {
+		println(err); return
+	}
 	fmt.Println(string(plaindata))
 
 }
