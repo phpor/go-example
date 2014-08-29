@@ -1,11 +1,13 @@
-// 参考资料： http://www.alaiblog.com/golang/step-by-step-learning-golang-go-language-basics.html
+// 参考资料：
+// 1. http://www.alaiblog.com/golang/step-by-step-learning-golang-go-language-basics.html
+// 2. https://github.com/astaxie/build-web-application-with-golang/blob/master/ebook/02.6.md
 
 package main
 
 import "fmt"
 
 func main() {
-	typeAssert()
+	callfunc()
 }
 
 // 交换两个变量的值，就是这么的简单
@@ -25,12 +27,26 @@ func typeConvert() {
 type Str string
 
 // 类型断言
-// 注意： 可以将一个interface类型的变量x来断言是否某种非interface类型的值，不能反过来检查非interface类型的值是否实现了某个接口
+// 注意： 可以将一个interface类型的变量x来断言是否某种非interface类型(或interface类型)的值，不能反过来检查非interface类型的值是否实现了某个接口
 // 参考资料： http://blog.csdn.net/kjfcpua/article/details/18667255
 func typeAssert() {
 	var str interface{} = Str("abc")
-	s, _ := str.(Str)
+	s, _ := str.(Str)        // 注意： 圆括号中是一个“类型”，而不是一个变量
 	fmt.Printf("%T, %+v", s, s)
+}
+
+// 关于类型（转换）、接口参数的用法
+func callfunc() {
+	var i int64 = 12345
+	needInt8(int8(i))    // 这里需要类型转换，而且，可能丢失信息
+	needInterface(i)    // 这里不需要类型转换，而且，不会丢失信息
+}
+func needInt8(i int8) {
+	fmt.Println(i)
+}
+func needInterface(i interface{}) {
+	// 这里想知道i是什么，需要用到类型断言（或反射）
+	fmt.Printf("%d\n", i.(int64)+1)    // 这里需要显示地把 i 转换成原本的类型
 }
 
 // 这里有一个返回值的隐式类型转换
