@@ -16,6 +16,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"bytes"
 )
 
 var decrypted string
@@ -26,6 +27,10 @@ func init() {
 }
 
 func main() {
+	GenerateKey()
+}
+
+func encAndDec() {
 	var data []byte
 	var err error
 	if decrypted != "" {
@@ -74,6 +79,43 @@ wYWd/7PeCELyEipZJL07Vro7Ate8Bfjya+wltGK9+XNUIHiumUKULW4KDx21+1NL
 AUeJ6PeW+DAkmJWF6QIDAQAB
 -----END PUBLIC KEY-----
 `)
+
+func GenerateKey() error {
+	// 生成私钥文件
+	privateKey, err := rsa.GenerateKey(rand.Reader, 160)
+	if err != nil {
+		return err
+	}
+	derStream := x509.MarshalPKCS1PrivateKey(privateKey)
+	block := &pem.Block{
+		Type: "RSA PRIVATE KEY",
+		Bytes: derStream,
+	}
+	var pripem bytes.Buffer
+	err = pem.Encode(&pripem, block)
+	if err != nil {
+		return err
+	}
+	// 生成公钥文件
+	publicKey := &privateKey.PublicKey
+	derPkix, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		return err
+	}
+	block = &pem.Block{
+		Type: "PUBLIC KEY",
+		Bytes: derPkix,
+	}
+	var pubpem bytes.Buffer
+	err = pem.Encode(&pubpem, block)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(pripem.String(), pubpem.String())
+	return nil
+}
 
 // 加密
 func RsaEncrypt(origData []byte) ([]byte, error) {
