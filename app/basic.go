@@ -4,10 +4,14 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+	"strings"
+)
 
 func main() {
-	callfunc()
+	printMany()
 }
 
 // 交换两个变量的值，就是这么的简单
@@ -54,5 +58,18 @@ func yinshiTypeConvert() <-chan int {
 	ch := make(chan int, 5)
 	ch <- 1
 	return ch   // 等同于 return <-chan int(ch)
+}
+
+func printMany() {
+	a := 1
+	b := "abc"
+	c := time.Now()
+	fmt.Println(a, b, c)
+	s := []interface{}{a, b, c}
+	str := make([]string, len(s))
+	for k, v := range s {
+		str[k] = fmt.Sprint(v)
+	}
+	fmt.Println(strings.Join(str[:], "\t"))
 }
 
