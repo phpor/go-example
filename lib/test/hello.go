@@ -6,6 +6,12 @@ package test
  */
 import "fmt"
 
+var hello = "hello"
+
 func Hello(word string) {
 	fmt.Println(word)
+}
+
+func HaHa() {
+	fmt.Println("hello " + world)    //这个world是同一个包中其他文件中的非导出变量
 }

@@ -4,4 +4,5 @@ import "github.com/phpor/goexample/lib/test"
 
 func main() {
 	test.Hello("use lib test")
+	test.HaHa()
 }

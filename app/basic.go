@@ -4,10 +4,84 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+	"strings"
+	"net"
+)
+
+const (
+	a = iota + 1
+	b
+	c
+	d
+)
 
 func main() {
-	callfunc()
+	assert()
+	//printMany()
+}
+
+func assert() {
+	var i interface{} = []string{"a", "b", "c"}
+	fmt.Printf("%T %v\n", i, i)
+	s := i.([]string)
+	fmt.Println(s)
+}
+func returnValOrRef() {
+
+	fmt.Println("=========== string ==========")
+	s := returnVal()
+	fmt.Println(&s)
+
+	ss := returnRef()
+	fmt.Println(ss)
+
+	fmt.Println("=========== struct ==========")
+	idc := returnIdcVal()
+	fmt.Printf("%p\n", &idc)
+
+	idc2 := returnIdcRef()
+	fmt.Printf("%p\n", idc2)
+}
+
+type idc struct {
+	name string
+	code uint8
+}
+
+func returnIdcVal() idc {
+	idc := idc{
+		name: "yf",
+		code: 1,
+	}
+	fmt.Printf("%p\n", &idc)
+	return idc
+}
+func returnIdcRef() *idc {
+	idc := &idc{
+		name: "yf",
+		code: 1,
+	}
+	fmt.Printf("%p\n", idc)
+	return idc
+}
+func returnVal() string {
+	s := "string"
+	fmt.Println(&s)
+	return s
+}
+
+func returnRef() *string {
+	s := "string"
+	fmt.Println(&s)
+	return &s
+}
+func parseIp(ip string) {
+	if ipv4 := net.ParseIP(ip).To4(); ipv4 != nil {
+		fmt.Println([]byte(ipv4))
+	}
 }
 
 // 交换两个变量的值，就是这么的简单
@@ -54,5 +128,18 @@ func yinshiTypeConvert() <-chan int {
 	ch := make(chan int, 5)
 	ch <- 1
 	return ch   // 等同于 return <-chan int(ch)
+}
+
+func printMany() {
+	a := 1
+	b := "abc"
+	c := time.Now()
+	fmt.Println(a, b, c)
+	s := []interface{}{a, b, c}
+	str := make([]string, len(s))
+	for k, v := range s {
+		str[k] = fmt.Sprint(v)
+	}
+	fmt.Println(strings.Join(str[:], "\t"))
 }
 
