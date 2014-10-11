@@ -1,4 +1,6 @@
-// 参考资料： http://blog.sina.com.cn/s/blog_630c58cb01016j1u.html
+// 参考资料：
+// 1. http://blog.sina.com.cn/s/blog_630c58cb01016j1u.html
+// 2. http://www.kankanews.com/ICkengine/archives/99037.shtml
 package main
 
 import (
@@ -8,15 +10,21 @@ import (
 
 func main() {
 
+
+
+}
+
+func syntaxChan() {
+
+}
+func onewayChan2() {
 	ch := make(chan int, 10)
 	ch2 := (<-chan int)(ch) // ch2 只读 // 注意: (<-chan int)(ch)  不等于 <- chan int (ch)
 	ch3 := (chan <- int)(ch) // ch3 只写
 	ch3 <- 1
 	// ch2 <- 2  // 只读的chan不能写
 	fmt.Print(<-ch2)
-
 }
-
 func onewayChan() {
 	ch1 := make(chan int, 10)
 	ch2 := make(<-chan int, 10)    // 直接 make一个只读或只写的chan是没有意义的
@@ -46,7 +54,7 @@ func first() {
 		// 问题： 这里是单个goroutine在写，如果多个goroutine在写一个chan，则谁来关闭？当然可以弄一个计数器，当然还要有锁，麻烦
 	}()
 	for {
-		j, ok := <-ch // 注意： 不是  j <- ch
+		j, ok := <-ch // 注意： 不是  j <- ch ; 该语法用于判断chan是否已关闭
 		if ok {
 			fmt.Println(j)
 		} else {

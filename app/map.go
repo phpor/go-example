@@ -1,9 +1,24 @@
 // 参考： http://blog.golang.org/go-maps-in-action
+// 1.
 package main
 
 import "fmt"
 
 func main() {
+	ref()
+}
+func ref() {
+	m1 := map[string]map[string]int{"a1":{"b1":1}, "a2":{"b2":1}}
+	fmt.Printf("%p\n", m1)
+	m2 := m1["a1"]
+	fmt.Printf("%p\n", m1["a1"]["b1"])    // 整型值没有地址
+	fmt.Printf("%p\n", m1["a1"])    // 整型值没有地址
+	fmt.Printf("%p\n", m2)
+	m2["b1"] = 3
+	fmt.Printf("%p\n", m1["a1"]["b1"])    // 整型值没有地址
+}
+
+func basic() {
 	m1 := map[string]int{}  // 等价于
 	m2 := make(map[string]int)
 	var m3  map[string]int     // 这是一个未初始化的map，不能直接用哦

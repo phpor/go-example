@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os/exec"
+	"encoding/base64"
 )
 
 var (
@@ -130,6 +131,8 @@ func enc(text string) {
 	encData, _ := PrivateEncrypt(privkey, data)
 	fmt.Println(encData)
 
+	fmt.Println(base64.StdEncoding.EncodeToString(encData))
+
 	block2, _ := pem.Decode([]byte(key["pub"]))
 	pubinterface, rest := x509.ParsePKIXPublicKey(block2.Bytes)
 	if rest != nil {
@@ -137,6 +140,7 @@ func enc(text string) {
 		return
 	}
 	plaindata, err := PublicDecrypt(pubinterface.(*rsa.PublicKey), encData)
+	fmt.Println("N:" + base64.StdEncoding.EncodeToString(pubinterface.(*rsa.PublicKey).N.Bytes()))
 	if err != nil {
 		println(err); return
 	}
@@ -144,9 +148,17 @@ func enc(text string) {
 
 }
 func main() {
-
+	key["pri"] = `-----BEGIN RSA PRIVATE KEY-----
+MHQCAQACFQCzO6uI8v9LjK6xPkvHE12L79CLZQIDAQABAhUAsB2I7ze+7fCd0bzl
+grBPOIEP3SECCwDYZ2iQ06ghO3n5AgsA1Acjn7jSz66XzQIKPhPr+x+8a0wUgQIK
+Pu6PiEzXZYUw0QIKQayQoCn3FBT4CQ==
+-----END RSA PRIVATE KEY-----`;
+	key["pub"] = `-----BEGIN PUBLIC KEY-----
+MDAwDQYJKoZIhvcNAQEBBQADHwAwHAIVALM7q4jy/0uMrrE+S8cTXYvv0ItlAgMB
+AAE=
+-----END PUBLIC KEY-----`
 	enc("abcd")
-	enc("abcd")
+	//enc("abcd")
 	//	enc("abcdef")
 	//	enc("12345")
 
