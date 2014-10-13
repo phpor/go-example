@@ -55,9 +55,9 @@ func getPool(addr string) *pools.ResourcePool {
 		return pool
 	}
 	println("create pool")
-	pool = pools.NewResourcePool(func() (pools.Resource, error) {
+	pool = pools.NewResourcePool((pools.Factory)(func() (pools.Resource, error) {
 			return createResource(addr)
-		}, 3, 3, 10*time.Second)
+		}), 3, 3, 10*time.Second)
 	pool_map[addr] = pool
 	return pool
 }
