@@ -19,6 +19,7 @@ import (
 	"math/big"
 	"os/exec"
 	"encoding/base64"
+	"time"
 )
 
 var (
@@ -40,7 +41,7 @@ zTgQga0V8QhTAgxCcq1jNXayK4fftyECDB1jgcnOU0DVWmJfFg==
 
 func PrivateEncrypt(priv *rsa.PrivateKey, data []byte) (enc []byte, err error) {
 	//	fmt.Println(priv)
-	fmt.Println(data)
+	//	fmt.Println(data)
 	k := (priv.N.BitLen() + 7) / 8
 	tLen := len(data)
 	// rfc2313, section 8:
@@ -55,15 +56,15 @@ func PrivateEncrypt(priv *rsa.PrivateKey, data []byte) (enc []byte, err error) {
 	for i := 2; i < k-tLen-1; i++ {
 		em[i] = 0xff
 	}
-	fmt.Println(em)
+	//	fmt.Println(em)
 	copy(em[k-tLen:k], data)
-	fmt.Println(em)
+	//	fmt.Println(em)
 	c := new(big.Int).SetBytes(em)
 	if c.Cmp(priv.N) > 0 {
 		err = ErrEncryption
 		return
 	}
-	fmt.Println(c, priv.D, priv.N)
+	//	fmt.Println(c, priv.D, priv.N)
 	var m *big.Int
 	var ir *big.Int
 	if priv.Precomputed.Dp == nil {
@@ -147,7 +148,37 @@ func enc(text string) {
 	fmt.Println(string(plaindata))
 
 }
+func encBenchmark() {
+	text := `text`
+	data := []byte(text)
+	block, _ := pem.Decode([]byte(key["pri"]))
+	privkey, _ := x509.ParsePKCS1PrivateKey(block.Bytes) // 这里自动做了 precompute了
+	//privkey.Precomputed.Dp = nil
+	s := time.Now()
+	for i := 0; i < 10000; i++ {
+		PrivateEncrypt(privkey, data)
+	}
+	e := time.Now()
+	fmt.Printf("precompute time use: %d\n", e.Sub(s)/1000000)
+	t1 := e.Sub(s)
+
+	privkey.Precomputed.Dp = nil
+	s = time.Now()
+	for i := 0; i < 10000; i++ {
+		PrivateEncrypt(privkey, data)
+	}
+	e = time.Now()
+	fmt.Printf("no precompute time use: %d\n", e.Sub(s)/1000000)
+	t2 := e.Sub(s)
+
+	fmt.Printf("save time: %d%%\n", (t2.Nanoseconds()-t1.Nanoseconds())*100/t2.Nanoseconds())
+
+}
 func main() {
+	encBenchmark()
+
+}
+func testEnc() {
 	key["pri"] = `-----BEGIN RSA PRIVATE KEY-----
 MHQCAQACFQCzO6uI8v9LjK6xPkvHE12L79CLZQIDAQABAhUAsB2I7ze+7fCd0bzl
 grBPOIEP3SECCwDYZ2iQ06ghO3n5AgsA1Acjn7jSz66XzQIKPhPr+x+8a0wUgQIK
@@ -161,7 +192,6 @@ AAE=
 	//enc("abcd")
 	//	enc("abcdef")
 	//	enc("12345")
-
 }
 func verify_public_decrypt() {
 	//	pubInterface,_ := x509.ParsePKIXPublicKey(block.Bytes)

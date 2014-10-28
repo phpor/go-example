@@ -9,6 +9,7 @@ import (
 	"time"
 	"strings"
 	"net"
+	"errors"
 )
 
 const (
@@ -19,10 +20,17 @@ const (
 )
 
 func main() {
-	assert()
+	useIp()
 	//printMany()
 }
 
+func useIp() {
+	fmt.Println([]byte(net.ParseIP("1.2.3.4")))
+}
+func useError() {
+	a := errors.New("")
+	fmt.Print(a)
+}
 func assert() {
 	var i interface{} = []string{"a", "b", "c"}
 	fmt.Printf("%T %v\n", i, i)

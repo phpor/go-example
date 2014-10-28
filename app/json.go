@@ -11,16 +11,29 @@ import (
 
 type Response1 struct { // 字段之间换行(或分号)分隔而不是逗号分隔，相同类型的N个字段（如果为了省略书写前者的类型，可以逗号分隔）
 	Page   int
-Fruits []string
+	Fruits []string
 }
 type Response2 struct { // 关于最后一个字符串的语法定义参考： http://golang.org/ref/spec#StructType
 	Page   int      `json:"page"`
-Fruits []string `json:"fruits"`
+	Fruits []string `json:"fruits"`
 }
 
+//func main() {
+//	decodeXx()
+//}
+
 func main() {
-	decodeArray()
+	byt := []byte(`{"ss":["a","b"]}`)
+	var dat map[string][]string
+	if err := json.Unmarshal(byt, &dat); err != nil {
+		panic(err)
+	}
+	fmt.Printf("%T\t %v\n", dat, dat)
+	ss := dat["ss"]
+	fmt.Printf("%T\t%v\n", dat["ss"], dat["ss"])
+	fmt.Printf("%T\t%v\n", ss, ss)
 }
+
 func decodeArray() {
 	doc := []byte(`["_2AkMkqhVta8N1rAFXnP8RzWvqboxH-jyXfg0bAn7oJxImHR19hmlmraB6tSNZoC2qBSA9aq331ynZaJMW","sub exipred"]`)
 	result := []string{}
@@ -28,6 +41,7 @@ func decodeArray() {
 	json.Unmarshal(doc, &result)
 	fmt.Printf("%+v", result)
 }
+
 
 func decodeObject() {
 	//关于 json.Marshal 的说明参看源码中的注释，有较详细的说明（如：非法utf-8字符的处理办法）

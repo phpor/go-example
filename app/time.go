@@ -6,6 +6,17 @@ import (
 )
 
 func main() {
+	zerotime()
+}
+
+func zerotime() {
+	var a time.Time
+	fmt.Println(a.Unix())
+	fmt.Println(a)
+}
+
+func format() {
+
 	// 格式化
 	fmt.Println("Now: ", time.Now())
 	fmt.Println("Now as Unix: ", time.Now().Unix())
