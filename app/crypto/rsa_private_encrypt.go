@@ -69,7 +69,7 @@ func PrivateEncrypt(priv *rsa.PrivateKey, data []byte) (enc []byte, err error) {
 	var ir *big.Int
 	if priv.Precomputed.Dp == nil {
 		m = new(big.Int).Exp(c, priv.D, priv.N)
-	} else {
+	} else {    // Precompute 大约可以提高 8% 的性能
 		// We have the precalculated values needed for the CRT.
 		m = new(big.Int).Exp(c, priv.Precomputed.Dp, priv.Primes[0])
 		m2 := new(big.Int).Exp(c, priv.Precomputed.Dq, priv.Primes[1])
