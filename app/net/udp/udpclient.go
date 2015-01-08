@@ -21,12 +21,11 @@ func main() {
 	}
 
 	defer conn.Close()
-fmt.Println("haha")
 	data := "data"
 	len := len(data)
 	buf := make([]byte, 256)
+	cnt := 0
 	for {
-		fmt.Println("haha")
 		time.Sleep(time.Millisecond)
 		n, err := conn.Write([]byte(data))
 		if err != nil {
@@ -48,6 +47,11 @@ fmt.Println("haha")
 			fmt.Printf("fail => received data len: %d\n", n)
 			break
 		}
+		cnt += 1
+		if cnt%10000 == 0 {
+			fmt.Println(time.Now(), cnt)
+
+		}
 	}
-	
+
 }
