@@ -5,6 +5,7 @@ import (
 	"time"
 	"net"
 	"flag"
+	"bytes"
 )
 
 func main() {
@@ -21,35 +22,56 @@ func main() {
 	}
 
 	defer conn.Close()
-	data := "data"
-	len := len(data)
+
 	buf := make([]byte, 256)
-	cnt := 0
+	cntAll := 0
+	cntOk := 0
+
 	for {
-		time.Sleep(time.Millisecond)
-		n, err := conn.Write([]byte(data))
+		mydata, _ := time.Now().GobEncode() // 用序号也行
+		length := len(mydata)
+		conn.SetWriteDeadline(time.Now().Add(100 * time.Millisecond)) // 设置 超时为 100ms
+		n, err := conn.Write(mydata)
 		if err != nil {
 			fmt.Println("error writing data to server")
 			fmt.Println(err)
 			break
 		}
 
-		if n != len {
-			println("send data fail")
+		if n != length {
+			fmt.Printf("send data fail %d != %d", n, length)
 			break
 		}
-		n, _, err = conn.ReadFromUDP(buf)	//能阻塞read吗？
-		if err != nil {
-			fmt.Println(err)
-			break
+
+		cntAll += 1
+		ok := false
+		for {
+			conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond)) // 设置 读超时为 100ms
+			n, _, err = conn.ReadFromUDP(buf)    //能阻塞read吗？
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			if n != length {
+				fmt.Printf("fail => received data len: %d\n", n)
+				break
+			}
+			if cntAll%10000 == 0 {
+				fmt.Println(time.Now(), cntAll)
+			}
+
+			if !bytes.Equal(buf[:n], mydata) {
+				continue
+			} else {
+				ok = true
+				break
+			}
 		}
-		if n != len {
-			fmt.Printf("fail => received data len: %d\n", n)
-			break
+		if ok {
+			cntOk += 1
 		}
-		cnt += 1
-		if cnt%10000 == 0 {
-			fmt.Println(time.Now(), cnt)
+		if cntAll%10000 == 0 {
+			fmt.Printf("cntAll: %d   cntOk: %d\n", cntAll, cntOk)
 
 		}
 	}
