@@ -59,10 +59,6 @@ func main() {
 				fmt.Printf("fail => received data len: %d\n", n)
 				break
 			}
-			if cntAll%10000 == 0 {
-				fmt.Println(time.Now(), cntAll)
-			}
-
 			if !bytes.Equal(buf[:n], mydata) {
 				continue
 			} else {
@@ -81,6 +77,7 @@ func main() {
 		if cntAll%10000 == 0 {
 			fmt.Printf("cntAll: %d   cntOk: %d\n", cntAll, cntOk)
 		}
+
 	}
 	report(timeSlice)
 
@@ -91,7 +88,7 @@ func report(timeSlice []int) {
 	sort.Ints(timeSlice)
 	//	fmt.Println(len(timeSlice), timeSlice)
 	l := len(timeSlice)
-	for _, i := range ([]int{5, 10, 20, 50, 80, 99, 100}) {
+	for _, i := range ([]int{5, 10, 20, 50, 80, 90, 99, 100}) {
 		index := l * i / 100
 		if index >= l {
 			index = l-1
