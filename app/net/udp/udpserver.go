@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+	_ "net/http/pprof"
+	"net/http"
 )
 
 
@@ -44,6 +46,9 @@ func main() {
 	var jobChan = make(chan *job, 50 * 10000)
 	createProductor(conn, jobChan, 1)
 	createWorker(conn, jobChan, 8)
+	go func() {
+		http.ListenAndServe(":7777", nil)
+	}()
 	showStatus()
 }
 
