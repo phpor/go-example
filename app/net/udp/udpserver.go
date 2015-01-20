@@ -80,7 +80,7 @@ func run(conn *net.UDPConn) {
 
 }
 func doJob(conn *net.UDPConn, address *net.UDPAddr, buf []byte) {
-	_, err = conn.WriteToUDP(buf, address)
+	_, err := conn.WriteToUDP(buf, address)
 	if err != nil {
 		cntOutErr++
 		fmt.Fprintf(os.Stderr, "write fail %s \n" ,err)
