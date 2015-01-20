@@ -1,20 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"time"
-	"net"
-	"flag"
 	"bytes"
-	"sort"
 	"encoding/binary"
+	"flag"
+	"fmt"
+	"net"
+	"sort"
 	"sync"
+	"time"
 )
 
 var (
-	verbos bool
+	verbos    bool
 	timeStart time.Time
 )
+
 func main() {
 	addr := flag.String("addr", "localhost:12345", "host:port")
 	count := flag.Int("count", 10000, "count to request")
@@ -26,6 +27,10 @@ func main() {
 	verbos = *ptrVerbos
 	server := *addr
 	udpAddress, err := net.ResolveUDPAddr("udp4", server)
+	if err != nil {
+		fmt.Println("addr error")
+		return
+	}
 
 	timeSlice := make([]int, *count)
 
@@ -80,7 +85,7 @@ func main() {
 				ok := false
 				for {
 					conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond)) // 设置 读超时为 100ms
-					n, _, err = conn.ReadFromUDP(buf)    //能阻塞read吗？
+					n, _, err = conn.ReadFromUDP(buf)                            //能阻塞read吗？
 					if err != nil {
 						debug(err.Error())
 						break
@@ -131,10 +136,10 @@ func report(timeSlice []int) {
 	sort.Ints(timeSlice)
 	//      fmt.Println(len(timeSlice), timeSlice)
 	l := len(timeSlice)
-	for _, i := range ([]int{5, 10, 20, 50, 80, 90, 99, 100}) {
+	for _, i := range []int{5, 10, 20, 50, 80, 90, 99, 100} {
 		index := l * i / 100
 		if index >= l {
-			index = l-1
+			index = l - 1
 		}
 		fmt.Printf("%d%%\t%dus\n", i, timeSlice[index])
 	}
