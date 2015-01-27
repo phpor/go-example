@@ -6,6 +6,7 @@ import (
 	"net/url"
 )
 
+// Login is login
 func Login(username string, password string) (uid string, err error) {
 	form := make(url.Values)
 	form.Set("username", username)
