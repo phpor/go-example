@@ -10,11 +10,15 @@ import (
 )
 
 func main() {
-	http_with_timeout()
+	get()
 }
 
 func get() {
-	res, err := http.Get("http://www.baidu.com/")
+	url := "http://baidu.com/"
+	if len(os.Args) > 1 {
+		url = os.Args[1]
+	}
+	res, err := http.Get(url)
 	check_fail(err)
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
