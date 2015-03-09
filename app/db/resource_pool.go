@@ -1,8 +1,8 @@
 package main
 
 import (
-	redis "github.com/alphazero/Go-Redis"
-	"github.com/youtube/vitess/go/pools"
+	redis "github.com/phpor/Go-Redis"
+	"github.com/phpor/goutils/pools"
 	"strconv"
 	"strings"
 	"time"
