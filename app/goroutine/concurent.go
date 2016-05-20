@@ -12,10 +12,10 @@ func main() {
 	ch := make(chan int)
 	go loop(ch)
 	go loop(ch)
-	//runtime.Gosched()	// 如果这里没有这个，将不会有任何输出
+	runtime.Gosched()	// 如果这里没有这个，将不会有任何输出
 
-	<-ch
-	<-ch
+	//<-ch
+	//<-ch
 }
 
 func loop(ch chan int) {
@@ -23,5 +23,7 @@ func loop(ch chan int) {
 		fmt.Println(i)
 		//	runtime.Gosched()
 	}
+		runtime.Gosched()
+
 	ch <- 0
 }
