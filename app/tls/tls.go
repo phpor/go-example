@@ -162,7 +162,7 @@ func ReadClientHello(rd io.Reader) (*ClientHelloMsg, error) {
 
 	// readRecord reads the next TLS record from the connection
 	// and updates the record layer state.
-	readRecord := func() error {
+	readRecord := func() ([]byte, error) {
 		// Caller must be in sync with connection:
 		// handshake data if handshake not yet completed,
 		// else application data.  (We don't support renegotiation.)
@@ -173,7 +173,7 @@ func ReadClientHello(rd io.Reader) (*ClientHelloMsg, error) {
 
 		// Read header, payload.
 		if err := b.readFromUntil(rd, recordHeaderLen); err != nil {
-			return err
+			return nil, err
 		}
 		typ := recordType(b.data[0])
 
@@ -182,13 +182,13 @@ func ReadClientHello(rd io.Reader) (*ClientHelloMsg, error) {
 		// is always < 256 bytes long. Therefore typ == 0x80 strongly suggests
 		// an SSLv2 client.
 		if typ == 0x80 {
-			return errors.New("tls: unsupported SSLv2 handshake received")
+			return nil, errors.New("tls: unsupported SSLv2 handshake received")
 		}
 
 		vers := uint16(b.data[1]) << 8 | uint16(b.data[2])
 		n := int(b.data[3]) << 8 | int(b.data[4])
 		if n > maxCiphertext {
-			return alertRecordOverflow
+			return nil, alertRecordOverflow
 		}
 
 		// First message, be extra suspicious:
@@ -200,38 +200,41 @@ func ReadClientHello(rd io.Reader) (*ClientHelloMsg, error) {
 		// well under a kilobyte.  If the length is >= 12 kB,
 		// it's probably not real.
 		if (typ != recordTypeHandshake) || vers >= 0x1000 || n >= 0x3000 {
-			return alertUnexpectedMessage
+			return nil, alertUnexpectedMessage
 		}
 
 		if err := b.readFromUntil(rd, recordHeaderLen + n); err != nil {
-			return err
+			return nil, err
 		}
-
+		dataReaded := b.data
 		// Process message.
 		b, nextBlock = splitBlock(b, recordHeaderLen + n)
 		b.off = recordHeaderLen
 		data := b.data[b.off:]
 		if len(data) > maxPlaintext {
-			return alertRecordOverflow
+			return nil, alertRecordOverflow
 		}
 
 		hand.Write(data)
 
-		return nil
+		return dataReaded, nil
 	}
-
-	if err := readRecord(); err != nil {
+	var allData bytes.Buffer
+	if dataReaded, err := readRecord(); err != nil {
 		return nil, err
+	} else {
+		allData.Write(dataReaded)
 	}
-
 	data := hand.Bytes()
 	n := int(data[1]) << 16 | int(data[2]) << 8 | int(data[3])
 	if n > maxHandshake {
 		return nil, alertInternalError
 	}
 	for hand.Len() < 4 + n {
-		if err := readRecord(); err != nil {
+		if dataReaded, err := readRecord(); err != nil {
 			return nil, err
+		}else {
+			allData.Write(dataReaded)
 		}
 	}
 
@@ -244,11 +247,12 @@ func ReadClientHello(rd io.Reader) (*ClientHelloMsg, error) {
 	if !msg.unmarshal(data) {
 		return nil, alertUnexpectedMessage
 	}
-
+	msg.RawData = allData.Bytes()
 	return msg, nil
 }
 
 type ClientHelloMsg struct {
+	RawData  	   []byte
 	Raw                []byte
 	Vers               uint16
 	Random             []byte
