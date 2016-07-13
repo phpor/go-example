@@ -11,7 +11,7 @@ func main() {
 	addr := flag.String("addr", "localhost:80", "host:port")
 	timeout := flag.Int("timeout", 500, "timeout in ms")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Author: phpor <junjie.li@beebank.com>\nUsage of %s:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Author: phpor <junjie.li@beebank.com>\nVersion: 0.1.0\nUsage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.Parse()
