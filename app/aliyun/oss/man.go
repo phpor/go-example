@@ -46,7 +46,17 @@ func list() {
 		fmt.Println("Objects:", object.Key)
 	}
 }
-func upload(objKey string, reader io.Reader, size int64) oss.CompleteMultipartUploadResult{
+
+func upload(objKey string, reader io.Reader, size int64) error {
+	if size <= 1024*1024*100 {
+		return newBucket().PutObject(objKey, reader)
+	}
+	mpUpload(objKey, reader, size)
+	return nil
+}
+
+
+func mpUpload(objKey string, reader io.Reader, size int64) oss.CompleteMultipartUploadResult{
 	bucket := newBucket()
 	mp, err := bucket.InitiateMultipartUpload(objKey)
 	if err != nil {
