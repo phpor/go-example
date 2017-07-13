@@ -3,6 +3,8 @@ package main
 
 // partNumber 可以从 1 开始，不能从 0 开始
 // 上传的每个部分都需要有上行的content-length 头，并且需要和实际内容长度一致，所以，需要知道流的长度才能上传
+// 小于 100KB的文件分片上传会报错： Your proposed upload smaller than the minimum allowed size
+
 import (
 	"github.com/phpor/aliyun-oss-go-sdk/oss"
 	"os"
