@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
-	"time"
 )
 
 func main() {
@@ -24,7 +23,7 @@ func main() {
 			fmt.Fprintln(w, r.URL.RawQuery)
 
 		})
-	go func() {
+/*	go func() {
 		eatmem := func() []byte {
 			s := make([]byte, 1024*1024)
 			s[1024] = 0x80
@@ -35,7 +34,7 @@ func main() {
 			eatmem()
 			time.Sleep(1 * time.Millisecond)
 		}
-	}()
+	}()*/
 	http.ListenAndServe(":"+port, nil)
 
 	//http.ListenAndServeTLS() 可以提供https服务
