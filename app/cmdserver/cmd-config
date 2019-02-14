@@ -1,0 +1,4 @@
+token=abcd
+echo=echo hello world
+ifconfig=ifconfig
+route=route print
