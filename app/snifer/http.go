@@ -26,11 +26,13 @@ func (e *endpoint) String() string {
 }
 
 type httpMsg struct {
-	request  []byte
-	response []byte
-	src      endpoint
-	dst      endpoint
-	finished bool
+	request     []byte
+	response    []byte
+	src         endpoint
+	dst         endpoint
+	finished    bool
+	seqRequest  uint32
+	seqResponse uint32
 }
 
 func (h *httpMsg) Print() {
@@ -72,29 +74,45 @@ func main() {
 		if !ok {
 			continue
 		}
-		sequence := ""
+		streamId := ""
 
 		src := endpoint{ip: iplayer.SrcIP, port: tcpLayer.SrcPort}
 		dst := endpoint{iplayer.DstIP, tcpLayer.DstPort}
-		sequence = src.String() + "=>" + dst.String()
+		streamId = src.String() + "=>" + dst.String()
 		if tcpLayer.SYN && !tcpLayer.ACK {
 			httpmsg := &httpMsg{}
 			httpmsg.src = src
 			httpmsg.dst = dst
-			flow[sequence] = httpmsg
+			flow[streamId] = httpmsg
 		}
+		seq := tcpLayer.Seq
+		fmt.Printf("streamId: %s seq: %d, len: %d\n", streamId, seq, len(tcpLayer.LayerPayload()))
 
-		if _, ok := flow[sequence]; !ok {
-			sequence = dst.String() + "=>" + src.String()
-			if _, ok := flow[sequence]; !ok {
+		if _, ok := flow[streamId]; !ok {
+			streamId = dst.String() + "=>" + src.String()
+			if _, ok := flow[streamId]; !ok {
 				continue
 			}
 		}
-		httpmsg := flow[sequence]
+		httpmsg := flow[streamId]
 		isRequest := iplayer.SrcIP.Equal(httpmsg.src.ip)
 		isResponse := iplayer.SrcIP.Equal(httpmsg.dst.ip)
 
 		content := tcpLayer.LayerPayload()
+
+		// 扔掉重传的包
+		if isRequest {
+			if seq <= httpmsg.seqRequest {
+				continue
+			}
+			httpmsg.seqRequest = seq
+		}
+		if isResponse {
+			if seq <= httpmsg.seqResponse {
+				continue
+			}
+			httpmsg.seqResponse = seq
+		}
 
 		if len(content) > 0 {
 			if isRequest {
@@ -109,7 +127,7 @@ func main() {
 		if tcpLayer.FIN && isResponse {
 			//if httpmsg.IsFinished() {
 			httpmsg.Print()
-			delete(flow, sequence)
+			delete(flow, streamId)
 		}
 
 	}
