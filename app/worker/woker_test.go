@@ -1,15 +1,19 @@
 package worker
 
 import (
+	"os"
 	"testing"
 	"time"
 )
 
 func TestNewWorker(t *testing.T) {
-	w := NewWorker(NewSimpleProducer(func(ch chan interface{}, isShouldStop func() bool) {
+	w := NewWorker(NewSimpleProducer(func(ch chan<- interface{}, isShouldStop func() bool) {
 		i := 0
 		for {
 			if isShouldStop() {
+				break
+			}
+			if i > 5 {
 				break
 			}
 			i++
@@ -21,9 +25,6 @@ func TestNewWorker(t *testing.T) {
 		return nil
 	}))
 	w.ConsumerNum = 3
-	go func() {
-		time.Sleep(5 * time.Second)
-		w.Stop()
-	}()
-	w.Start()
+	go w.LogStats(os.Stdout, time.Second)
+	_ = w.Start()
 }

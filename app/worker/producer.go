@@ -7,7 +7,7 @@ type SimpleProducer struct {
 	f        ProducerFunc
 	stopOnce sync.Once
 }
-type ProducerFunc func(ch chan interface{}, isShouldStop func() bool) // 比定义一个Interface要简洁一些
+type ProducerFunc func(ch chan<- interface{}, isShouldStop func() bool) // 比定义一个Interface要简洁一些
 
 func NewSimpleProducer(f ProducerFunc) *SimpleProducer {
 	sp := &SimpleProducer{
@@ -21,7 +21,7 @@ func (sp *SimpleProducer) Init() error {
 	return nil
 }
 
-func (sp *SimpleProducer) Do(ch chan interface{}) {
+func (sp *SimpleProducer) Do(ch chan<- interface{}) {
 	sp.f(ch, func() bool { return sp.ShouldStop() })
 }
 
