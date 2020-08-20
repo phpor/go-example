@@ -2,7 +2,7 @@ package worker
 
 import (
 	"fmt"
-	"io"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -37,30 +37,36 @@ func (s *Stats) String() string {
 }
 
 type Worker struct {
-	Producer    Producer
-	Consumer    Consumer
-	ProducerNum int
-	ConsumerNum int
-	stopOnce    sync.Once
-	closeCh     chan struct{}
-	closedCh    chan struct{}
-	stats       Stats
+	Producer         Producer
+	Consumer         Consumer
+	ProducerNum      int
+	ConsumerNum      int
+	ChanLength       int
+	stopOnce         sync.Once
+	stopProducerOnce sync.Once
+	closeCh          chan struct{}
+	closedCh         chan struct{}
+	stats            Stats
 }
 
 func NewWorker(producer Producer, consumer Consumer) *Worker {
-	w := &Worker{Producer: producer, Consumer: consumer, ProducerNum: 1, ConsumerNum: 1}
+	w := &Worker{Producer: producer, Consumer: consumer, ProducerNum: 1, ConsumerNum: 1, ChanLength: -1}
 	w.closeCh = make(chan struct{})
 	w.closedCh = make(chan struct{})
 	return w
 }
 
+// Start
 func (w *Worker) Start() error {
 	w.stats.TimeStart = time.Now()
 	defer func() {
 		w.stats.TimeEnd = time.Now()
 		close(w.closedCh)
 	}()
-	ch := make(chan interface{}, w.ProducerNum+w.ConsumerNum)
+	if w.ChanLength < 0 {
+		w.ChanLength = w.ProducerNum + w.ConsumerNum
+	}
+	ch := make(chan interface{}, w.ChanLength)
 
 	wgConsumer := sync.WaitGroup{}
 	wgProducer := sync.WaitGroup{}
@@ -116,24 +122,34 @@ func (w *Worker) Stop() {
 		close(w.closeCh)
 	})
 }
+func (w *Worker) stopProducer() {
+	w.stopProducerOnce.Do(func() {
+		w.Producer.Close()
+	})
+}
 
 func (w *Worker) Stats() *Stats {
 	return &w.stats
 }
 
-func (w *Worker) LogStats(writer io.Writer, duration time.Duration) {
+func (w *Worker) LogStats(duration time.Duration, funcs ...func()) {
 	ticker := time.NewTicker(duration)
 	defer ticker.Stop()
-	isStopped := false
+
+	f := func() {
+		_, _ = fmt.Fprintf(os.Stderr, "%s\n", w.stats.String())
+	}
+	if funcs != nil {
+		f = funcs[0]
+	}
 	for {
-		_, _ = fmt.Fprintf(writer, "%s\n", w.stats.String())
-		if isStopped {
+		f()
+		if !w.stats.TimeEnd.IsZero() {
 			break
 		}
 		select {
-		case <-ticker.C:
 		case <-w.closedCh:
-			isStopped = true
+		case <-ticker.C:
 		}
 	}
 }
