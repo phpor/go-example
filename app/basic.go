@@ -5,11 +5,11 @@
 package main
 
 import (
-	"fmt"
-	"time"
-	"strings"
-	"net"
 	"errors"
+	"fmt"
+	"net"
+	"strings"
+	"time"
 )
 
 const (
@@ -20,8 +20,40 @@ const (
 )
 
 func main() {
-	useIp()
+
+	y0, m0, d0 := time.Unix(0, 0).Date()
+	fmt.Printf("%v, %v, %v\n", y0, m0, d0)
+	y, m, d1 := time.Now().Date()
+	fmt.Printf("%d, %d, %d\n", y, m, d1)
+	updateTime := 20200709
+	y2 := updateTime / 10000
+	m2 := updateTime / 100 % 100
+	d2 := updateTime % 100
+	fmt.Printf("%d, %d, %d\n", y2, m2, d2)
+
+	d := time.Date(y2, time.Month(m2), d2, 0, 0, 0, 0, time.FixedZone("CST", int((8*time.Hour).Seconds())))
+
+	c := 20200904 / 10000
+	fmt.Printf("%d, %d\n", c, d.Unix())
+
+	fmt.Printf("%s\n", time.Now().Unix())
+	s := make([]string, 3)
+
+	fmt.Printf("%s", s)
+	//fmt.Printf("%v",returnErr())
+	//fmt.Printf("%v\n", 11)
+	//useIp()
 	//printMany()
+}
+
+func returnErr() (err error) {
+	a := 1
+
+	if _, err := 2, errors.New("bad"); err != nil {
+		println(err)
+	}
+	println(a)
+	return
 }
 
 func useIp() {
@@ -32,7 +64,7 @@ func useError() {
 	fmt.Print(a)
 }
 func assert() {
-	var i interface{} = []string{"a", "b", "c"}
+	var i interface{} = []string{"a", "b", "c2"}
 	fmt.Printf("%T %v\n", i, i)
 	s := i.([]string)
 	fmt.Println(s)
@@ -113,29 +145,29 @@ type Str string
 // 参考资料： http://blog.csdn.net/kjfcpua/article/details/18667255
 func typeAssert() {
 	var str interface{} = Str("abc")
-	s, _ := str.(Str)        // 注意： 圆括号中是一个“类型”，而不是一个变量
+	s, _ := str.(Str) // 注意： 圆括号中是一个“类型”，而不是一个变量
 	fmt.Printf("%T, %+v", s, s)
 }
 
 // 关于类型（转换）、接口参数的用法
 func callfunc() {
 	var i int64 = 12345
-	needInt8(int8(i))    // 这里需要类型转换，而且，可能丢失信息
-	needInterface(i)    // 这里不需要类型转换，而且，不会丢失信息
+	needInt8(int8(i)) // 这里需要类型转换，而且，可能丢失信息
+	needInterface(i)  // 这里不需要类型转换，而且，不会丢失信息
 }
 func needInt8(i int8) {
 	fmt.Println(i)
 }
 func needInterface(i interface{}) {
 	// 这里想知道i是什么，需要用到类型断言（或反射）
-	fmt.Printf("%d\n", i.(int64)+1)    // 这里需要显示地把 i 转换成原本的类型
+	fmt.Printf("%d\n", i.(int64)+1) // 这里需要显示地把 i 转换成原本的类型
 }
 
 // 这里有一个返回值的隐式类型转换
 func yinshiTypeConvert() <-chan int {
 	ch := make(chan int, 5)
 	ch <- 1
-	return ch   // 等同于 return <-chan int(ch)
+	return ch // 等同于 return <-chan int(ch)
 }
 
 func printMany() {
@@ -150,4 +182,3 @@ func printMany() {
 	}
 	fmt.Println(strings.Join(str[:], "\t"))
 }
-

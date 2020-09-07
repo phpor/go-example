@@ -17,9 +17,9 @@ type parent struct {
 	abstractWithMe func(*parent, string)
 }
 
-func NewParent() (*parent) {
-	return &parent{    //可以通过实例化方法来初始化函数属性为空函数
-		abstractHello: func(string) {},
+func NewParent() *parent {
+	return &parent{ //可以通过实例化方法来初始化函数属性为空函数
+		abstractHello:  func(string) {},
 		abstractWithMe: func(*parent, string) {},
 	}
 }
@@ -31,11 +31,11 @@ func (p *parent) say() {
 	p.hello()
 }
 
-type c parent
+type c2 parent
 
 // 如此定义，c可以访问parent结构中定义的属性（包括函数属性），但不能访问到绑定到parent上的方法；换言之，继承了属性，没继承方法
-func (c c) say() {
-	println("hello in c")
+func (c c2) say() {
+	println("hello in c2")
 }
 
 type child struct {
@@ -52,19 +52,19 @@ func use_abstract(a *parent, name string) {
 	//	}
 }
 func main() {
-	//	c := &child{}
-	//	c.say()
-	//	use_abstract(&parent{abstractHello:func(name string) {
-	//		println("hello:", name)
+	//	c2 := &child{}
+	//	c2.say()
+	//	use_abstract(&parent{abstractHello:func(Name string) {
+	//		println("hello:", Name)
 	//	}}, "phpor")
 
-	use_abstract(NewParent(), "phpor")    //使用空函数
+	use_abstract(NewParent(), "phpor") //使用空函数
 	a := NewParent()
-	a.abstractHello = func(name string) {    //自定义方法
+	a.abstractHello = func(name string) { //自定义方法
 		println(name)
 	}
 	use_abstract(a, "phpor2")
-	//	c := c{}
-	//	c.say()
+	//	c2 := c2{}
+	//	c2.say()
 
 }

@@ -29,11 +29,15 @@ type Stats struct {
 }
 
 func (s *Stats) String() string {
-	end := ""
+	timeFormat := "2006-01-02 15:04:05"
+	now := time.Now()
+	isEnd := false
 	if !s.TimeEnd.IsZero() {
-		end = fmt.Sprintf("\nElapsed: %v", s.TimeEnd.Sub(s.TimeStart).String())
+		now = s.TimeEnd
+		isEnd = true
 	}
-	return fmt.Sprintf("%s All:%d Success:%d Fail:%d%s", time.Now().Format("2006-01-02 15:04:05"), s.CntConsumed, s.CntConsumedSuccess, s.CntConsumedFail, end)
+	elapsed := now.Sub(s.TimeStart)
+	return fmt.Sprintf("%s All:%d Success:%d Fail:%d start: %s Elapsed: %s IsEnd: %t", time.Now().Format(timeFormat), s.CntConsumed, s.CntConsumedSuccess, s.CntConsumedFail, s.TimeStart.Format(timeFormat), elapsed, isEnd)
 }
 
 type Worker struct {
@@ -107,10 +111,10 @@ func (w *Worker) Start() error {
 	}
 	go func() {
 		<-w.closeCh
-		w.Producer.Close()
+		w.stopProducer()
 	}()
 	wgProducer.Wait()
-	w.Producer.Close()
+	w.stopProducer()
 
 	close(ch)
 	wgConsumer.Wait()

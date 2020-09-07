@@ -29,7 +29,7 @@ func NewSsoDbUser() *SsoDbUser {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	orm.ShowSQL = true
+	orm.ShowSQL()
 	return &SsoDbUser{db: orm}
 }
 
@@ -44,7 +44,7 @@ func (this *SsoDbUser) query() {
 }
 func (this *SsoDbUser) query2() {
 	orm := this.db
-	user := &User{Name:"phpor2"}
+	user := &User{Name: "phpor2"}
 	exists, err := orm.Get(user)
 	if err != nil {
 		fmt.Print(err)
@@ -59,7 +59,7 @@ func (this *SsoDbUser) query2() {
 
 func (this *SsoDbUser) update() {
 	orm := this.db
-	user := &User{Name:"phpor2", Password:"password2"}
+	user := &User{Name: "phpor2", Password: "password2"}
 	effected, err := orm.Cols("password").Update(user)
 	if err != nil {
 		fmt.Print(err)
@@ -72,7 +72,7 @@ func (this *SsoDbUser) update() {
 
 func (this *SsoDbUser) insert(name, password string) {
 	orm := this.db
-	user := &User{Name:name, Password:password}
+	user := &User{Name: name, Password: password}
 
 	effected, err := orm.Insert(user)
 	if err != nil {

@@ -27,12 +27,12 @@ func (e *endpoint) String() string {
 
 type httpMsg struct {
 	request     []byte
-	response    []byte
+	response    []byte // 注意： 有只有请求没有响应的情况
 	src         endpoint
 	dst         endpoint
 	finished    bool
-	seqRequest  uint32
-	seqResponse uint32
+	lenRequest  uint32
+	lenResponse uint32
 }
 
 func (h *httpMsg) Print() {
@@ -86,7 +86,8 @@ func main() {
 			flow[streamId] = httpmsg
 		}
 		seq := tcpLayer.Seq
-		fmt.Printf("streamId: %s seq: %d, len: %d\n", streamId, seq, len(tcpLayer.LayerPayload()))
+		length := uint32(len(tcpLayer.LayerPayload()))
+		//fmt.Printf("streamId: %s seq: %d, len: %d\n", streamId, seq, length)
 
 		if _, ok := flow[streamId]; !ok {
 			streamId = dst.String() + "=>" + src.String()
@@ -102,16 +103,18 @@ func main() {
 
 		// 扔掉重传的包
 		if isRequest {
-			if seq <= httpmsg.seqRequest {
+			if seq < httpmsg.lenRequest {
 				continue
 			}
-			httpmsg.seqRequest = seq
+			httpmsg.lenRequest = seq + length
+			//httpmsg.seqRequest = seq
 		}
 		if isResponse {
-			if seq <= httpmsg.seqResponse {
+			if seq < httpmsg.lenResponse {
 				continue
 			}
-			httpmsg.seqResponse = seq
+			httpmsg.lenResponse = seq + length
+			//httpmsg.seqResponse = seq
 		}
 
 		if len(content) > 0 {

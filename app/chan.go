@@ -5,12 +5,64 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
 func main() {
-	first()
+	chan3()
 
+}
+
+func chan3() {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	msg := make(chan int, 10)
+	go func() {
+		time.Sleep(1 * time.Second)
+		for c := range msg {
+			fmt.Printf("%d\n", c)
+		}
+		wg.Done()
+	}()
+	i := 0
+	for {
+		if i > 5 {
+			break
+		}
+		msg <- i
+		i++
+	}
+	// chan 必须 close，否则，chan中会读出空值，而且，空值不会触发for循环终止，或许会检测到死锁而退出
+	// chan 被 close 时，不会影响其中未被读取的消息
+	close(msg)
+
+	wg.Wait()
+}
+
+type chanInterface interface {
+}
+type chanStruct struct {
+	A string
+}
+
+func chan2() {
+	ch := make(chan chanInterface, 2)
+	ch <- chanStruct{A: "aaa"}
+	c := <-ch
+	println(c)
+	close(ch)
+	timer := time.NewTimer(10 * time.Second)
+	c = <-ch
+	ch = nil
+	ch <- 1
+	select {
+	case ch <- 1:
+	case <-timer.C:
+		break
+	}
+
+	fmt.Printf("%v", c == nil)
 }
 
 func syntaxChan() {

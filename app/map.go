@@ -2,26 +2,57 @@
 // 1.
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 func main() {
-	ref()
+	mapSort()
+
 }
 func ref() {
-	m1 := map[string]map[string]int{"a1":{"b1":1}, "a2":{"b2":1}}
+	m1 := map[string]map[string]int{"a1": {"b1": 1}, "a2": {"b2": 1}}
 	fmt.Printf("%p\n", m1)
 	m2 := m1["a1"]
-	fmt.Printf("%p\n", m1["a1"]["b1"])    // 整型值没有地址
-	fmt.Printf("%p\n", m1["a1"])    // 整型值没有地址
+	fmt.Printf("%p\n", m1["a1"]["b1"]) // 整型值没有地址
+	fmt.Printf("%p\n", m1["a1"])       // 整型值没有地址
 	fmt.Printf("%p\n", m2)
 	m2["b1"] = 3
-	fmt.Printf("%p\n", m1["a1"]["b1"])    // 整型值没有地址
+	fmt.Printf("%p\n", m1["a1"]["b1"]) // 整型值没有地址
+}
+
+type Imap struct {
+	data map[int]int
+}
+
+func (m *Imap) Len() int {
+	return len(m.data)
+}
+
+func (m *Imap) Less(i, j int) bool {
+	return m.data[i] < m.data[j]
+}
+
+func (m *Imap) Swap(i, j int) {
+	m.data[i], m.data[j] = m.data[j], m.data[i]
+}
+
+func mapSort() {
+	imap := Imap{data: map[int]int{}}
+	imap.data[2] = 11
+	imap.data[1] = 22
+	imap.data[3] = 33
+	fmt.Printf("%v\n", imap)
+	sort.Sort(&imap)
+	fmt.Printf("%v\n", imap)
+
 }
 
 func basic() {
-	m1 := map[string]int{}  // 等价于
+	m1 := map[string]int{} // 等价于
 	m2 := make(map[string]int)
-	var m3  map[string]int     // 这是一个未初始化的map，不能直接用哦
+	var m3 map[string]int // 这是一个未初始化的map，不能直接用哦
 
 	m1["k"] = 1
 	m2["k"] = 2
@@ -37,7 +68,7 @@ func basic() {
 
 	fmt.Println("i1,i2: ", i1, i2)
 
-	if i3, exists := m1["k"]; exists {    // i3 , exists 的作用于仅仅是该if语句
+	if i3, exists := m1["k"]; exists { // i3 , exists 的作用于仅仅是该if语句
 		fmt.Println("m1[k]: ", i3)
 	}
 

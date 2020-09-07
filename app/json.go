@@ -23,7 +23,45 @@ type Response2 struct { // 关于最后一个字符串的语法定义参考： h
 //}
 
 func main() {
-	byt := []byte(`{"ss":["a","b"]}`)
+	//marshalTab()
+	marshalWithoutSpace()
+}
+
+func marshalWithoutSpace() {
+	a := struct {
+		Id      string `json:"-"`
+		Name    string `json:"name,omitempty"`
+		Age     int8   `json:"age"`
+		Address string `json:",omitempty"`
+	}{
+		Id:   "aa",
+		Name: "phpor",
+		Age:  1,
+	}
+	x, err := json.Marshal(a)
+	if err != nil {
+		println(err)
+		return
+	}
+	println(string(x))
+}
+
+func marshalTab() {
+	msg := struct {
+		Name string
+	}{
+		Name: string([]byte{0x01, 0x02, 0x03}),
+	}
+	v, err := json.Marshal(msg)
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	println(string(v))
+}
+
+func unmarshalTest() {
+	byt := []byte(`{"ss":["a\tcc","b"]}`)
 	var dat map[string][]string
 	if err := json.Unmarshal(byt, &dat); err != nil {
 		panic(err)
@@ -32,6 +70,7 @@ func main() {
 	ss := dat["ss"]
 	fmt.Printf("%T\t%v\n", dat["ss"], dat["ss"])
 	fmt.Printf("%T\t%v\n", ss, ss)
+
 }
 
 func decodeArray() {
@@ -41,7 +80,6 @@ func decodeArray() {
 	json.Unmarshal(doc, &result)
 	fmt.Printf("%+v", result)
 }
-
 
 func decodeObject() {
 	//关于 json.Marshal 的说明参看源码中的注释，有较详细的说明（如：非法utf-8字符的处理办法）

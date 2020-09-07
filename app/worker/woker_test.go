@@ -24,7 +24,7 @@ func TestNewWorker(t *testing.T) {
 	}), NewSimpleConsumer(func(i interface{}) error {
 		println(i.(int))
 		// 如果这里想退出，则可以直接调用w.Stop()
-		w.Stop()
+		//w.Stop()
 		return nil
 	}))
 	w.ConsumerNum = 3

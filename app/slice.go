@@ -2,6 +2,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"sort"
 )
@@ -10,6 +11,15 @@ func slice_is_readonly(ss []string) {
 	fmt.Printf("ss in func: %p\n", ss) // slice 通过参数传递时是传地址的
 }
 func main() {
+	a := make([]byte, 18)
+	a[0] = 1
+	binary.LittleEndian.PutUint32(a[1:5], uint32(2))
+	copy(a[5:], []byte{3})
+	println(a)
+}
+
+func testSlice1() {
+
 	s := "hello_world"
 	fmt.Println(s[:5]) //字符串默认可以当slice使用
 	fmt.Println(s[5:6])
@@ -47,7 +57,7 @@ func main() {
 	println("append to slice:")
 	//slice 的追加
 	s1 := []string{"a", "b"}
-	s2 := []string{"c", "d"}
+	s2 := []string{"c2", "d"}
 	fmt.Printf("&s1: %p\n", s1)
 
 	// 一般会这么写：

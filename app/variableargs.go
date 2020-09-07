@@ -13,7 +13,7 @@ func variableargs(x string, y ...string) { //可变参数实质上是个slice，
 	}
 }
 func main() {
-	variableargs("first:", "a", "b", "c")
+	variableargs("first:", "a", "b", "c2")
 	variableargs("second:", "x", "y")
 	s := []string{"hello", "world"}
 	fmt.Printf("slice in main: %p\n", s)
