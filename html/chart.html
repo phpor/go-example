@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8"><link rel="icon" href="https://jscdn.com.cn/highcharts/images/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* css 代码  */
+        div {
+            display: inline-block;
+            vertical-align: top;
+        }
+        input {
+            margin: 4px;
+            padding: 3px;
+        }
+        label {
+            margin: 4px;
+        }
+        button{
+            padding: 2px;
+            margin: 4px;
+        }
+        .newline {
+            display: block;
+        }
+    </style>
+    <script src="https://code.highcharts.com.cn/jquery/jquery-1.8.3.min.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts/highcharts.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts/modules/series-label.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts/modules/oldie.js"></script>
+    <script src="https://code.highcharts.com.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
+</head>
+<body>
+<div id="container" style="max-width:800px;height:400px"></div>
+<div style="margin-top: 20px;margin-left: 20px">
+    <h3>设置</h3>
+    <div class="newline"><label for="newDayWeight">newDayWeight</label><input id="newDayWeight" value="30"/></div>
+    <div class="newline"><label for="ElapseWeight">ElapseWeight</label><input id="ElapseWeight" value="2"/></div>
+    <div class="newline"><label for="maxDays" title="该天数之前的活跃不计算">maxDays</label><input id="maxDays" value="360"/></div>
+    <div class="newline"><label for="activeDays" title="活跃天数">activeDays</label><input id="activeDays" value="360"/></div>
+    <div class="newline"><label for="DaysWeight">DaysWeight</label><input id="DaysWeight" value="2"/></div>
+    <div><button onclick="draw()">Go</button></div>
+</div>
+<script>
+    var chart = null;
+    function draw() {
+        var data = {
+            newDayWeight:$("#newDayWeight").val(),
+            ElapseWeight:$("#ElapseWeight").val(),
+            maxDays:$("#maxDays").val(),
+            DaysWeight:$("#DaysWeight").val(),
+            activeDays:$("#activeDays").val()
+        };
+        $.getJSON("http://localhost:8181/v",data, function (json) {
+            chart = Highcharts.chart('container', {
+                title: {
+                    text: '用户活跃度'
+                },
+                subtitle: {
+                    text: '数据来源：根据模型出来的'
+                },
+                xAxis: {
+                    title: {
+                        text: '连续活跃天数'
+                    }
+                },
+                yAxis: {
+                    title: {
+                        text: '活跃度'
+                    }
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle'
+                },
+                plotOptions: {
+                    series: {
+                        label: {
+                            connectorAllowed: false
+                        },
+                        pointStart: 1
+                    }
+                },
+                series: [{
+                    name: '用户活跃度',
+                    data: json
+                }],
+                responsive: {
+                    rules: [{
+                        condition: {
+                            maxWidth: 500
+                        },
+                        chartOptions: {
+                            legend: {
+                                layout: 'horizontal',
+                                align: 'center',
+                                verticalAlign: 'bottom'
+                            }
+                        }
+                    }]
+                }
+            });
+        })
+    }
+    draw()
+</script>
+</body>
+</html>
