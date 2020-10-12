@@ -23,6 +23,10 @@
         .newline {
             display: block;
         }
+        .fieldName {
+            width: 110px;
+            display: inline-block;
+        }
     </style>
     <script src="https://code.highcharts.com.cn/jquery/jquery-1.8.3.min.js"></script>
     <script src="https://code.highcharts.com.cn/highcharts/highcharts.js"></script>
@@ -35,11 +39,16 @@
 <div id="container" style="max-width:800px;height:400px"></div>
 <div style="margin-top: 20px;margin-left: 20px">
     <h3>设置</h3>
-    <div class="newline"><label for="newDayWeight">newDayWeight</label><input id="newDayWeight" value="30"/></div>
-    <div class="newline"><label for="ElapseWeight">ElapseWeight</label><input id="ElapseWeight" value="2"/></div>
-    <div class="newline"><label for="maxDays" title="该天数之前的活跃不计算">maxDays</label><input id="maxDays" value="360"/></div>
-    <div class="newline"><label for="activeDays" title="活跃天数">activeDays</label><input id="activeDays" value="360"/></div>
-    <div class="newline"><label for="DaysWeight">DaysWeight</label><input id="DaysWeight" value="2"/></div>
+    <div class="newline"><label class="fieldName" for="newDayWeight">newDayWeight</label><input id="newDayWeight" value="30"/> 该值越大，最近几天的活跃就对活跃度贡献越大 【 1 ~ 100 】</div>
+    <div class="newline"><label class="fieldName" for="ElapseWeight">ElapseWeight</label><input id="ElapseWeight" value="40"/> 该值越大，历史活跃对活跃度的贡献下降的越快</div>
+    <div class="newline"><label class="fieldName" for="maxDays" title="其实，这个可以没有">maxDays</label><input id="maxDays" value="360" /> 该天数之前的活跃不计算</div>
+    <div class="newline"><label class="fieldName" for="activeDays" title="活跃天数">activeDays</label><input id="activeDays" value="360"/> 活跃天数</div>
+    <div class="newline"><label class="fieldName" for="DaysWeight">DaysWeight</label><input id="DaysWeight" value="1"/> 就是说1天可以按照几天来算，一般都是1</div>
+    <div class="newline"><label class="fieldName" for="accumulation">accumulation</label><input type="checkbox" id="accumulation" value="1"/> 计算N天前一直活跃到现在的累积活跃度</div>
+    <div class="newline"><label class="fieldName" for="alg">alg</label><select id="alg" >
+            <option value="default">default</option>
+            <option value="php">php</option>
+        </select> 计算N天前一直活跃到现在的累积活跃度</div>
     <div><button onclick="draw()">Go</button></div>
 </div>
 <script>
@@ -50,7 +59,9 @@
             ElapseWeight:$("#ElapseWeight").val(),
             maxDays:$("#maxDays").val(),
             DaysWeight:$("#DaysWeight").val(),
-            activeDays:$("#activeDays").val()
+            activeDays:$("#activeDays").val(),
+            alg:$("#alg").val(),
+            accumulation:$("#accumulation").is(':checked')
         };
         $.getJSON("http://localhost:8181/v",data, function (json) {
             chart = Highcharts.chart('container', {
@@ -62,7 +73,7 @@
                 },
                 xAxis: {
                     title: {
-                        text: '连续活跃天数'
+                        text: '活跃时间（天）'
                     }
                 },
                 yAxis: {

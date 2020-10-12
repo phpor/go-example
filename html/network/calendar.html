@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendar</title>
+    <script src="jquery-3.4.1.min.js"></script>
+</head>
+<!--
+todo:
+1. 设备名中会含有空格，严格按照tab分隔比较好 ✅
+2. 设备名称会发生变化，但是这里只记录了第一次的，可以考虑体现这种变化 ✅
+3. 目前设备名称的变化没有先后顺序，需要是已排序的原始值才能体现先后顺序
+4. 添加tip ✅
+5. 重构
+-->
+<style>
+    .show-tip:before{
+        content:attr(tip);
+        display: none;
+    }
+    .show-tip:hover::before{
+        display:flex; background: #d2ff97; border:1px solid black; padding:8px; margin:25px 0 0 10px;
+        /*white-space: nowrap;*/
+        position:absolute;
+        color: black;
+    }
+    .show-tip:hover{
+        z-index:10; position:relative;
+    }
+
+    .log-data {
+        width: 80%;
+        float: left;
+    }
+    .tag-span-small {
+        height: 4px;
+        width: 4px;
+        float: left;
+        margin: 1px;
+        border-radius: 2px;
+    }
+    .tag-span-big {
+        height: 10px;
+        width: 10px;
+        float: left;
+        margin: 1px;
+        border-radius: 5px;
+    }
+    .tag-span-wifi {
+        border-radius: 0px;
+    }
+    .hour-outer {
+        background-color: #deecee;
+        margin: 1px;
+        float: left;
+        width: 100%;
+        padding: 1px;
+    }
+    .hour-label {
+        float: left;
+        margin: 1px;
+        font-family: monospace;
+        font-size: larger;
+    }
+    .hour-span {
+        width: 24px;
+        float: left;
+    }
+    .day-label {
+        display: inline;
+        float: left;
+        /*margin-right: 5px;*/
+        /*width: 200px;*/
+        font-family: monospace;
+        font-size: larger;
+    }
+    .day-span {
+        border: solid 1px cornflowerblue;
+        /*height: 26px;*/
+        display: flex;
+        border-radius: 3px;
+    }
+    .calendar {
+        margin: 5px;
+    }
+    .tid {
+        padding: 5px;
+        margin: 1px;
+        float: left;
+        color: white;
+        border-radius: 3px;
+        font-size: smaller;
+    }
+    .button {
+        background-color: #fff;
+        border: solid 1px rgb(216, 216, 216);
+        margin-right: 40px;
+        margin-top: 10px;
+        float: right;
+    }
+    fieldset {
+        border-radius: 3px;
+    }
+</style>
+<body>
+<div style="display: block;width: 100%">
+        <fieldset>
+            <button class="button" onclick="toggleSize(this)" id="btnResizeFlag">放大标记</button>
+            <button class="button" onclick="draw(parseTextArea())">绘图</button>
+            <label for="uid">Uid:</label><input id="uid" value="1000039192"/> <div class="button" onclick="queryLog()">查询</div>
+            <legend>trace log</legend>
+            <textarea id="data" rows="10" class="log-data">
+    tid1        20200508 04  Apple    我的苹果手机   4g
+    tid2     20200508 05   HuaWei   我的华为手机   wifi
+    tid1     20200508 06   Apple   我的苹果手机   4g
+    tid3     20200509 04   XiaoMi   我的小米手机   wifi
+            </textarea>
+        </fieldset>
+</div>
+<div>
+<fieldset>
+    <legend>tid</legend>
+    <div id="tids">
+    </div>
+</fieldset>
+</div>
+<div class="calendar" id="calendar">
+
+</div>
+<script>
+    let tagSize = 'big';
+    var week = ['日', '一', '二', '三', '四', '五', '六'];
+    var TraceLog = { // 这个包含一个tid对象似乎是合理的
+        tid:"",
+        day:"",
+        brand: "",
+        deviceName:"",
+        connectType:"",
+        ssid:"",
+        os:"",
+        ip:"",
+        model:"",
+        udid:"",
+        idfa:"",
+        idfv:"",
+        android_id:"",
+        imei:"",
+    };
+    TraceLog.toString = function () {
+        // this.tid, this.day, this.brand, this.deviceName, this.os, this.model,
+        return [ this.connectType, this.ssid, this.ip].join("  ");
+    };
+
+    let Tid = {
+        id: "",
+        brand: "",
+        deviceName: "",
+        os: "",
+        model: "",
+        names: [], // 记录deviceName的变化
+        udid: "",
+        idfa: "",
+        idfv: "",
+        android_id: "",
+        imei: "",
+        desc: function() {
+            return this.brand + " " + $.unique(this.names).join("->")
+        },
+        toString: function () {
+            return [this.id, this.brand, this.deviceName, this.os, this.model, this.uniqueId()].join("  ");
+        },
+        new: function (tid) {
+            let t = {id: tid};
+            t.__proto__ = Tid;
+            return t;
+        },
+        uniqueId: function() { // 可能的唯一ID
+            if (this.udid !== "") return "udid:"+this.udid;
+            if (this.idfa !== "" && this.idfa !== "00000000-0000-0000-0000-000000000000") return "idfa:"+this.idfa;
+            if (this.idfv !== "" && this.idfv !== "00000000-0000-0000-0000-000000000000") return "idfv:"+this.idfv;
+            if (this.android_id !== "") return "android_id:"+this.android_id;
+            if (this.imei !== "") return "imei:"+this.imei;
+            return "no-unique-id";
+        },
+    };
+
+    function queryLog() {
+        $.get("http://localhost:8181/tracelog",{uid: $("#uid").val()}, function (arr) {
+            var logs = [];
+            for(var i in arr) {
+                var log = arr[i];
+                let traceLog = {};
+                traceLog.__proto__ = TraceLog;
+
+                traceLog.tid = log.tid;
+                traceLog.day = log.time;
+                traceLog.yyyy = traceLog.day.substr(0,4);
+                traceLog.mm = traceLog.day.substr(4,2);
+                traceLog.dd = traceLog.day.substr(6,2);
+                traceLog.hour = traceLog.day.substr(9,2);
+                traceLog.brand = log.brand;
+                traceLog.deviceName = log.device_name;
+                traceLog.connectType = log.connect_type;
+                traceLog.os = log.os;
+                traceLog.ip = log.ip;
+                traceLog.model = log.model;
+                traceLog.ssid = log.ssid;
+                traceLog.idfa = log.idfa;
+                traceLog.idfv = log.idfv;
+                traceLog.udid = log.udid;
+                traceLog.imei = log.imei;
+                traceLog.android_id = log.android_id;
+                logs.push(traceLog)
+            }
+            draw(parseData(logs))
+        });
+    }
+    function parseTextArea() {
+        var text = $("#data").val().trim(); // 这里不能使用text() ，这个text不能到修改后的值
+        var lines = text.split("\n");
+        var logs = [];
+        for (var i in lines) {
+            try {
+                logs.push(newTraceLog(lines[i]));
+            }catch (e) {
+                console.log(e)
+            }
+        }
+        return parseData(logs);
+    }
+    function parseData(logs) {
+        let dataSet = {
+            logs: [],
+            startDay: "",
+            endDay: "",
+            tidColor: {},
+            tidInfo: {},
+            tids : [],
+        };
+        let colorGenerator = createColorGenerator();
+        for (let i in logs) {
+            console.log("aaa",i);
+            let traceLog = logs[i];
+            if (!dataSet.tids[traceLog.tid]) {
+                let tid = Tid.new(traceLog.tid);
+                tid.color = colorGenerator();
+                tid.brand = traceLog.brand;
+                tid.os = traceLog.os;
+                tid.names = [traceLog.deviceName];
+                tid.deviceName = traceLog.deviceName;
+                tid.udid = traceLog.udid;
+                tid.idfa = traceLog.idfa;
+                tid.idfv = traceLog.idfv;
+                tid.imei = traceLog.imei;
+                tid.android_id = traceLog.android_id;
+                tid.times = 1;
+                dataSet.tids[traceLog.tid] = tid;
+            } else {
+                dataSet.tids[traceLog.tid].names.push(traceLog.deviceName);
+                dataSet.tids[traceLog.tid].deviceName = traceLog.deviceName;
+                dataSet.tids[traceLog.tid].times++;
+            }
+            // if (!dataSet.tidColor[traceLog.tid]) {
+            //     dataSet.tidColor[traceLog.tid] = colorGenerator();
+            // }
+            // if (!dataSet.tidInfo[traceLog.tid]) {
+            //     dataSet.tidInfo[traceLog.tid] = {
+            //         brand: traceLog.brand,
+            //         name: [traceLog.deviceName],
+            //         times: 1,
+            //         desc: function() {
+            //             return this.brand + " " + $.unique(this.name).join("->")
+            //         }
+            //     }
+            // } else {
+            //     dataSet.tidInfo[traceLog.tid].name.push(traceLog.deviceName);
+            //     dataSet.tidInfo[traceLog.tid].times++;
+            // }
+            var date = new Date(Date.parse([traceLog.yyyy,traceLog.mm,traceLog.dd].join("-")));
+            if ( dataSet.startDay === ""  ) {
+                dataSet.startDay = date;
+            } else if (date.getTime() < dataSet.startDay.getTime()) {
+                dataSet.startDay = date
+            }
+            if ( dataSet.endDay === ""  ) {
+                dataSet.endDay = date;
+            } else if (date.getTime() > dataSet.endDay.getTime()) {
+                dataSet.endDay = date
+            }
+            var seconds = Date.parse(date.yyyy + "-" + date.mm + "-" + date.dd + " " + traceLog.hour + ":00:00")/1000;
+            dataSet.logs.push({tid: traceLog.tid, date: date, hour: parseInt(traceLog.hour) , seconds: seconds, color: dataSet.tids[traceLog.tid].color, connectType: traceLog.connectType, traceLog: traceLog});
+        }
+        var html = [];
+        for(let tid in dataSet.tids) {
+            html.push("<div class='tid show-tip' style='background-color: "+dataSet.tids[tid].color+"' tip='"+dataSet.tids[tid].toString()+"'>"+dataSet.tids[tid].desc()+"【"+dataSet.tids[tid].times+"】</div>")
+        }
+        $("#tids").html(html);
+        return dataSet;
+    }
+
+    function newTraceLog(line) {
+        var arr = line.trim().replace(/ {2,}/g, "\t").split("\t");
+        if (arr.length < 3) {
+            throw "format error"
+        }
+        let traceLog = {};
+        traceLog.__proto__ = TraceLog;
+        traceLog.tid = arr[0].trim();
+        traceLog.day = arr[1].trim();
+        traceLog.yyyy = traceLog.day.substr(0,4);
+        traceLog.mm = traceLog.day.substr(4,2);
+        traceLog.dd = traceLog.day.substr(6,2);
+        traceLog.hour = traceLog.day.substr(9,2);
+        traceLog.brand = arr[2].trim();
+        traceLog.deviceName = arr[3].trim();
+        traceLog.connectType = arr[4].trim();
+    console.log(traceLog);
+        return traceLog;
+    }
+
+    function parseDate(date) {
+        return date.getTime()/1000
+
+    }
+    function formatNum(num) {
+        if (num < 10) {
+            return "0" + num;
+        }
+        return "" + num;
+    }
+    function formatSeconds2Date(seconds) {
+        var dt = new Date(seconds*1000);
+        return dt.getFullYear()+ "-" + formatNum(dt.getMonth() + 1)+"-" + formatNum(dt.getDate()) + "【星期"+week[dt.getDay()]+"】";
+    }
+    function newColorSpan(color, connectType, traceLog) {
+        let classConnectType = connectType === "4g"?"":"tag-span-wifi";
+        return '<div class=" show-tip tag-span tag-span-'+tagSize+ " " + classConnectType +'" style="background-color:'+color+';" tip="'+traceLog.toString()+'"></div>'
+    }
+    function newHourSpan() {
+        return {
+            spans: [],
+            addSpan: function(span) {
+                this.spans.push(span);
+            },
+            build: function(h) {
+                return "<div class='hour-outer'><div class='hour-label'>"+h+"</div><div class='hour-span'>" + this.spans.join("") + "</div></div>"
+            }
+
+        };
+    }
+    function draw(data) {
+        var calendar = $("#calendar");
+
+        var html = [];
+        for(var d = parseDate(data.startDay); d <= parseDate(data.endDay) ; d += 86400) {
+            var hours =  [];
+            var h = 0;
+            for(var t = d;  t <= d+86400; t += 3600) {
+                var hourSpan = newHourSpan();
+                var h1 = new Date(t * 1000);
+                var logs = data.logs;
+                for(var i in logs) {
+                    var h2 = new Date(logs[i].date.getTime() + logs[i].hour * 3600 * 1000);
+                    // console.log(data[i].seconds, t, new Date(t*1000), data[i].date.str, data[i].hour)
+                    if (h1.getTime() == h2.getTime()) {
+                        hourSpan.addSpan(newColorSpan(logs[i]["color"], logs[i]["connectType"], logs[i].traceLog))
+                    }
+                }
+
+                hours.push(hourSpan.build(h));
+                h++;
+            }
+
+            var day = formatSeconds2Date(d);
+            // console.log(day);
+            html.push("<br><div class='day-label'>" + day + "</div><div class='day-span'>" + hours.join("") + "</div>");
+        }
+        calendar.html(html.join(""));
+    }
+
+    function toggleSize(e) {
+        if (tagSize == "small") {
+            $(".tag-span").addClass("tag-span-big");
+            $(".tag-span").removeClass("tag-span-small");
+            tagSize = "big";
+            $(e).html("缩小标记");
+            return;
+        }
+        $(".tag-span").addClass("tag-span-small");
+        $(".tag-span").removeClass("tag-span-big");
+        tagSize = "small";
+        $(e).html("放大标记");
+        return;
+    }
+
+    function createColorGenerator() {
+        var colors = [ "#ffcc00", "#00ddff",
+            "#00ff00",  "#cc602f", "#dd8e3f",
+            "#864659", "#29612f", "#c61764","#6e5565",
+            "#9f6317","#275f58", "#0000ff", "#ff0000"
+        ];
+        var c = colors;
+        return function () {
+            if (c.length > 0) return c.pop();
+            return randomColor();
+        }
+
+    }
+
+    function randomColor() {//十六进制颜色随机
+        var r = Math.floor(Math.random() * 200);
+        var g = Math.floor(Math.random() * 120);
+        var b = Math.floor(Math.random() * 120);
+        var color = '#' + r.toString(16) + g.toString(16) + b.toString(16);
+        return color;
+    }
+
+    $("#btnResizeFlag").html(tagSize=="small"?"放大标记":"缩小标记");
+
+    draw(parseTextArea());
+</script>
+
+</body>
+</html>
