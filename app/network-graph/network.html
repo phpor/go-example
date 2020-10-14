@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Network</title>
+    <script src="jquery-3.4.1.min.js"></script>
+    <script src="vis-network.min.js"></script>
+</head>
+<style>
+    #network {
+        width: 90%;
+        height: 800px;
+        border: 1px solid lightgray;
+    }
+</style>
+<body>
+<p>
+    <a href="https://en.wikipedia.org/wiki/DOT_(graph_description_language)">DOT language.</a>
+</p>
+<textarea id="dot" rows="10" style="width: 80%">
+dinetwork {
+    node [shape=box];
+    1 -> 1 [label="aaa" color="blue"]-> 2 [style=dotted]; 2 -> 3; 2 -- 4; 2 -> 1 ;
+    { rank=same; 1 2 }
+    { rank=same; 3 4 }
+}
+</textarea>
+<button onclick="draw($(dot).val())">draw</button>
+<div id="network"></div>
+参考:
+<ul>
+<li><a href="https://visjs.github.io/vis-network/docs/network/">https://visjs.github.io/vis-network/docs/network/</a></li>
+</ul>
+</body>
+<script>
+let network;
+    function draw(DOTstring) {
+
+        let container = $("#network")[0]; // 注意，network 不认识jquery的对象
+        console.log(DOTstring)
+        var parsedData = vis.parseDOTNetwork(DOTstring);
+        console.log(parsedData)
+        var data = {
+            nodes: parsedData.nodes,
+            edges: parsedData.edges
+        };
+
+        var options = parsedData.options;
+
+        // you can extend the options like a normal JSON variable:
+        options.nodes = {
+            color: '#f3f3f3',
+        };
+        options.edges = {
+            color: 'blue'
+        };
+        // create a network
+        network = new vis.Network(container, data, options);
+    }
+
+    $.get("/data", function (data) {
+        draw(data);
+    });
+</script>
+</html>
