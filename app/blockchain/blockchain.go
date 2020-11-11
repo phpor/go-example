@@ -13,12 +13,14 @@ type Block struct {
 	data   fmt.Stringer
 	rand   [8]byte
 	digest [32]byte
+	proof  uint64
 }
 
 type BlockChain struct {
 	head     *Block
 	tail     *Block
 	initData fmt.Stringer
+	proof    []byte
 }
 
 func New(data fmt.Stringer) *BlockChain {
@@ -35,6 +37,7 @@ func New(data fmt.Stringer) *BlockChain {
 		head:     firstBlock,
 		tail:     firstBlock,
 		initData: data,
+		proof:    []byte{0},
 	}
 }
 
@@ -42,6 +45,23 @@ func makeRand() [8]byte {
 	r := [8]byte{}
 	rand.Read(r[:])
 	return r
+}
+
+func (bc *BlockChain) proofOfWork(preDigest [32]byte, data []byte) (proof uint64, nonce [8]byte, digest [32]byte) {
+	l := len(data) + 32
+	buf := make([]byte, l+8)
+	copy(buf, preDigest[:])
+	copy(buf[32:], data)
+	for {
+		proof++
+		nonce = makeRand()
+		copy(buf[l:], nonce[:])
+		digest = sha256.Sum256(buf)
+		if bytes.HasPrefix(digest[:], bc.proof) {
+			break
+		}
+	}
+	return
 }
 
 func makeDigest(preDigest [32]byte, data []byte, rand [8]byte) [32]byte {
@@ -55,12 +75,14 @@ func (bc *BlockChain) Add(data fmt.Stringer) *BlockChain {
 		return nil
 	}
 	r := makeRand()
+	proof, r, digest := bc.proofOfWork(bc.tail.digest, []byte(data.String()))
 	b := &Block{
 		pre:    bc.tail,
 		next:   nil,
 		data:   data,
 		rand:   r,
-		digest: makeDigest(bc.tail.digest, []byte(data.String()), r),
+		digest: digest,
+		proof:  proof,
 	}
 	bc.tail.next = b
 	bc.tail = b
@@ -68,7 +90,7 @@ func (bc *BlockChain) Add(data fmt.Stringer) *BlockChain {
 }
 
 func (b *Block) String() string {
-	return fmt.Sprintf("%s", b.data)
+	return fmt.Sprintf("%s; proof: %d", b.data, b.proof)
 }
 
 func (bc *BlockChain) Verify() bool {
