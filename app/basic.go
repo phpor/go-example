@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -20,7 +22,66 @@ const (
 )
 
 func main() {
+	p := PointerTest{}
+	p.say() // 可以用值直接call指针的方法
 
+	//PointerTest{}.say()   // 这个和上面的写法差不多，但是，这样写不行
+
+	// 不能用指针直接call值的方法
+	(&p).sayByValue() // 为什么这个也能调用？？？
+
+}
+
+type PointerTest struct{}
+
+func (p *PointerTest) say() {
+	println("haha")
+}
+
+func (p PointerTest) sayByValue() {
+	println("haha")
+}
+
+func testVersion() {
+	var osVersionExp = regexp.MustCompile("^[0-9][0-9.]+$")
+	if osVersionExp.MatchString("10.1") {
+		println("succ")
+	}
+}
+
+func testString() {
+	println(string([]byte{64}))
+	b := []byte{1, 2, 0, '@', 5, 0, 7}
+	arr := strings.Split(string(b), "@")
+	println(len(arr[1]))
+	c := arr[1]
+	decodeC([]byte(c))
+}
+func decodeC(c []byte) {
+	println(len(c))
+}
+
+func glob() {
+	files, err := filepath.Glob("~/mfp.db")
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	if len(files) <= 0 {
+		println("no such file")
+		return
+	}
+	println(files[0])
+	return
+}
+func stringConv() {
+	for _, v := range "我" {
+		println(v)
+	}
+	println(string(25105))
+}
+
+func basic101() {
 	y0, m0, d0 := time.Unix(0, 0).Date()
 	fmt.Printf("%v, %v, %v\n", y0, m0, d0)
 	y, m, d1 := time.Now().Date()
@@ -44,6 +105,20 @@ func main() {
 	//fmt.Printf("%v\n", 11)
 	//useIp()
 	//printMany()
+}
+
+func basicChar() {
+	//fmt.Printf("%s %d\n", []byte{0xff}, len([]byte{0xff}))
+	//fmt.Printf("%c", 0xff)
+	a := 0xff
+	b := string(a)
+	print(b)
+	//if string(uint8(255)) == string(0xff) {
+	//	println("OK")
+	//}
+	//if string(uint8(255)) == string(-2) {
+	//	println("OK")
+	//}
 }
 
 func returnErr() (err error) {
