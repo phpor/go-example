@@ -1,15 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func main() {
-	i := test11()
-	fmt.Printf("%d\n", i)
-	s := test12()
-	fmt.Printf("%d\n", s.i)
-	fmt.Printf("%d\n", deferTest13().i)
+	defer TimeMeasure()()
+	time.Sleep(time.Second)
 }
 
+func TimeMeasure() func() {
+	now := time.Now()
+	return func() {
+		fmt.Printf("%s\n", time.Now().Sub(now))
+	}
+}
 func test11() int {
 	i := 1
 	defer func() {
@@ -42,6 +48,13 @@ func deferTest13() (s *testDefer) {
 	panic("111")
 	s.i = 2
 	return s
+}
+func test14() {
+	i := test11()
+	fmt.Printf("%d\n", i)
+	s := test12()
+	fmt.Printf("%d\n", s.i)
+	fmt.Printf("%d\n", deferTest13().i)
 }
 
 type testDefer struct {

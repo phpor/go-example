@@ -4,13 +4,43 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"reflect"
 	"sort"
+	"strings"
 )
 
 func slice_is_readonly(ss []string) {
 	fmt.Printf("ss in func: %p\n", ss) // slice 通过参数传递时是传地址的
 }
 func main() {
+	a := []byte("abc")
+	fmt.Printf("%s", a[2:2]) // 前后相同就是没有
+	//testSliceFilter()
+}
+
+func testSliceFilter() {
+	ss := []string{"phpor", "zhangsan", "php", "go", "python", "c"}
+	SliceFilter(&ss, func(i int) bool {
+		fmt.Printf("%v\n", ss[i])
+		return strings.HasPrefix(ss[i], "p")
+	})
+	fmt.Printf("%v\n", ss)
+}
+
+func testSlice3() {
+	ss := make([]string, 2, 3)
+	ss[0] = "aa"
+	ss[1] = "bb"
+	modifySs := func(ss []string) {
+		ss[0] = "AA"
+		ss = append(ss, "cc") // 会产生新的ss， 不是因为原来的ss容量不够，而是，这根本就是一个新的ss
+	}
+	modifySs(ss)
+	fmt.Printf("%v", ss) // [AA bb]
+	// 这说明: slice 不能算是传地址的，说成引用传递比较好，修改其内容是可以的，但是修改其本身是不行的
+
+}
+func testSlice2() {
 	a := make([]byte, 18)
 	a[0] = 1
 	binary.LittleEndian.PutUint32(a[1:5], uint32(2))
@@ -66,4 +96,36 @@ func testSlice1() {
 
 	s3 := append(s1, s2...) // 注意：追加的是slice中的元素，而不是slice，所以这里用 ... 语法，将slice结构成多个元素参数
 	fmt.Printf("%p: %v\n%p: %v\n", s1, s1, s3, s3)
+}
+
+func SliceFilter(data interface{}, f func(int) bool) {
+	if reflect.TypeOf(data).Kind() != reflect.Ptr || reflect.ValueOf(data).Elem().Kind() != reflect.Slice {
+		panic("data must be slice pointer")
+	}
+
+	va := reflect.ValueOf(data).Elem()
+
+	j := 0
+	l := va.Len()
+	for i := 0; i < l; i++ {
+		if f(i) {
+			j++
+			continue
+		}
+
+		// 从最后面找一个填进来
+		for {
+			if i+1 >= l { // 如果 i 已经是最后一个了，则退出循环
+				break
+			}
+			l-- // 最后一个要么移动到前面，要么不符合条件被丢弃，所以这里直接l--
+			if f(l) {
+				va.Index(j).Set(va.Index(l))
+				j++
+				break
+			}
+		}
+	}
+
+	va.SetLen(j)
 }

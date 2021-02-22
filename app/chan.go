@@ -10,8 +10,22 @@ import (
 )
 
 func main() {
-	chan3()
+	chan4()
 
+}
+
+func chan4() {
+	c := make(chan int, 1)
+	c <- 1
+	<-c
+	go func() { // 如果没有这个协程，就得报deadlock而终止程序
+		i := 0
+		for {
+			i++
+		}
+	}()
+	c <- 1
+	c <- 1
 }
 
 func chan3() {

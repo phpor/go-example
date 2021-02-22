@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 )
@@ -11,7 +13,7 @@ import (
 //	fmt.Print("haha" + strconv.Itoa(i))
 //}
 func main() {
-	bytesEqual()
+	bytesMd5()
 	//trunkBytes()
 }
 
@@ -26,6 +28,11 @@ func bytesEqual() {
 	println(o1 == o2) // 虽然interface可以比较，但是这个更加不能用，会出现运行时异常；
 	// 所以，永远不要直接比较interface，interface只能用于接口，想执行任何具体的操作，都需要转成具体的类型再操作
 	// 如果interface包装的具体对象是可以比较的，则该interface比较也不会panic，但是也不要指望比较的解决符合直觉
+}
+
+func bytesMd5() {
+	buf := md5.Sum(nil)
+	fmt.Printf("%s", hex.EncodeToString(buf[:]))
 }
 
 func bytesTest1() {

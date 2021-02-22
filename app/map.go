@@ -8,9 +8,17 @@ import (
 )
 
 func main() {
-	mapSort()
+	m := map[string]int{"phpor": 1}
+	n := returnMap(m)
+	m["age"] = 2
+	fmt.Printf("%v", n)
 
 }
+
+func returnMap(a map[string]int) map[string]int {
+	return a
+}
+
 func ref() {
 	m1 := map[string]map[string]int{"a1": {"b1": 1}, "a2": {"b2": 1}}
 	fmt.Printf("%p\n", m1)

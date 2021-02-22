@@ -4,9 +4,15 @@
 // 2. 向无读取的无buffer（或buffer写满）的信道写数据会导致死锁
 package main
 
-// 该main函数会导致死锁
+import "time"
+
+// 该main函数会导致死锁,如果有一个能干活的协程存在，哪怕该协程在sleep，也不会deadlock
 func main() {
 	ch := make(chan int)
+	go func() {
+		for {
+			time.Sleep(time.Second)
+		}
+	}()
 	<-ch
 }
-

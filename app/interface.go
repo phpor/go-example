@@ -1,9 +1,26 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-	interfaceEqual()
+	c := &CC{}
+	c.f = func(ib IA) {
+		ib.Say()
+	}
+}
+
+type IA interface {
+	Say()
+}
+
+type IB interface {
+	Say()
+}
+
+type CC struct {
+	f func(IA)
 }
 
 func interfaceEqual() {

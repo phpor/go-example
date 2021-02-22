@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	byte2string()
+	println(strings.Split("", ":")[0])
 }
 
 func bytesAndArr() {

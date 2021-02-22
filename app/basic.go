@@ -22,14 +22,34 @@ const (
 )
 
 func main() {
-	p := PointerTest{}
-	p.say() // 可以用值直接call指针的方法
+	testCastError()
 
-	//PointerTest{}.say()   // 这个和上面的写法差不多，但是，这样写不行
+}
+
+func testCastError() {
+	err := errors.New("test")
+	err = nil
+	func(err error) {
+		if opError, ok := err.(*net.OpError); ok { // 对于网络错误，即记录目的地址，因为原地址的端口号是随机的，记录也没意义
+			fmt.Printf("%s %s -> %s fail: %s", opError.Op, strings.Split(opError.Source.String(), ":")[0], opError.Addr.String(), opError.Err.Error())
+		}
+	}(err)
+}
+
+func testPointPtr() {
+	p := PointerTest{}
+	p.say() // 可以用值直接call指针的方法，因为这样自动取地址了
+
+	//PointerTest{}.say()   // 这个和上面的写法差不多，但是，这样写不行,主要原因是这个struct不能取地址
 
 	// 不能用指针直接call值的方法
 	(&p).sayByValue() // 为什么这个也能调用？？？
+	pp := &p
+	pp.sayByValue()
 
+	var pp2 *PointerTest
+	pp2 = &p
+	pp2.sayByValue()
 }
 
 type PointerTest struct{}

@@ -27,6 +27,7 @@ func TestNewWorker(t *testing.T) {
 		//w.Stop()
 		return nil
 	}))
+	t.Log()
 	w.ConsumerNum = 3
 	go w.LogStats(time.Second, func() {
 		fmt.Printf("%s\n", w.stats.String())

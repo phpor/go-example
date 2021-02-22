@@ -37,9 +37,13 @@ func New(n int) *MyRing {
 	return &MyRing{r: r, head: r, tail: r}
 }
 
+// Push 不是并发安全的，通常可以先push到一个chan中，让单独的一个goroutine来do work就行了
 func (mr *MyRing) Push(v int) {
 	mr.tail.Value = v
 	mr.tail = mr.tail.Next()
+	if mr.tail == mr.head {
+		mr.head = mr.tail
+	}
 }
 func (mr *MyRing) Dump() {
 	printr(mr.head)
