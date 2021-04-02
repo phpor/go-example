@@ -15,7 +15,7 @@ func main() {
 	fmt.Println(a)
 
 	//	i := 4
-	//	var c2 [i]byte	//声明数组是不允许使用变量的哦~
+	//	var c2 [i]byte	//声数组是不允许使用变量的哦~
 	//	c2[1] = 1
 	//	fmt.Println(c2)
 }
