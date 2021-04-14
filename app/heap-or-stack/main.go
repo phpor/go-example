@@ -7,9 +7,14 @@ import (
 	"time"
 )
 
-// golang 的协程的stack 不再系统分配的栈空间中
+// golang 的协程的stack 不在系统分配的栈空间中
+// 下面函数中的变量a分别都是分配在堆还是栈上？
 
 func main() {
+	TestCopyStack()
+}
+
+func TestAllocA() {
 	A()
 	B()
 	C()

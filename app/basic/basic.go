@@ -117,7 +117,7 @@ func basic101() {
 	c := 20200904 / 10000
 	fmt.Printf("%d, %d\n", c, d.Unix())
 
-	fmt.Printf("%s\n", time.Now().Unix())
+	fmt.Printf("%d\n", time.Now().Unix())
 	s := make([]string, 3)
 
 	fmt.Printf("%s", s)
