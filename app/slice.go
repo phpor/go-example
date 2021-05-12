@@ -13,9 +13,30 @@ func slice_is_readonly(ss []string) {
 	fmt.Printf("ss in func: %p\n", ss) // slice 通过参数传递时是传地址的
 }
 func main() {
+	subSlice()
+}
+
+func subSlice() {
 	a := []byte("abc")
-	fmt.Printf("%s", a[2:2]) // 前后相同就是没有
+	fmt.Printf("%s", a[2:2]) // 前后相同就是没有,前闭后开
 	//testSliceFilter()
+
+	println("test2:")
+	b := []int{1}
+	println(b[1:]) // 虽然这里的1是越界的，但是，截取不会报错
+	//println(b[1])  //虽然这个看起来和上面的切片截取差不多，但是，这里就是越界错误。
+
+	println("test 3")
+	c := []int{1, 2, 3, 4, 5, 6, 7}
+	c1 := c[2:4] // 这里的c1 的cap是从2到c的cap结束，这里c1 长度2 ，cap 5
+	println("c1: ", c1)
+	println("append...")
+	_ = append(c1, 8) // 这里没有修改c1的长度，所以，c1的内容没变，但是，因为cap允许就没有发生内存移位，于是，影响到了c
+	println("c:", c)
+	println("c1: ", c1)
+	fmt.Printf("c: %#v\n", c)
+	fmt.Printf("c1: %#v\n", c1)
+
 }
 
 func testSliceFilter() {
