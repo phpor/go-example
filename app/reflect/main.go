@@ -22,6 +22,10 @@ func (o *Obj) Say() {
 }
 
 func main() {
+	testInject()
+}
+
+func testReflectAndSet() {
 
 	obj := &Obj{
 		A: "",
