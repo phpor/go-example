@@ -3,15 +3,18 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/phpor/go-example/app/vitality"
 	"net/http"
 	"strconv"
 	"strings"
+	"vitality"
 )
 
 func main() {
 	addr := flag.String("addr", ":8181", "listen addr")
+	root := flag.String("root", "../", "www root")
 	flag.Parse()
+	fs := http.FileServer(http.Dir(*root))
+	http.Handle("/html/", fs)
 	http.HandleFunc("/v", func(writer http.ResponseWriter, request *http.Request) {
 		request.ParseForm()
 		newDayWeight, _ := strconv.ParseInt(request.Form.Get("newDayWeight"), 10, 64)
