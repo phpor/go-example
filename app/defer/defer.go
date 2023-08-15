@@ -6,8 +6,16 @@ import (
 )
 
 func main() {
-	defer TimeMeasure()()
-	time.Sleep(time.Second)
+	defer func() {
+		myDefer()
+	}()
+	panic("haha")
+}
+
+func myDefer() {
+	if e := recover(); e != nil {
+		println("recover ok")
+	}
 }
 
 func TimeMeasure() func() {

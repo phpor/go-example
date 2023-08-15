@@ -2,11 +2,10 @@ package main
 
 import (
 	"flag"
-	"net"
 	"fmt"
-	"log"
 	"io"
-	"github.com/phpor/goexample/app/tls"
+	"log"
+	"net"
 )
 
 func main() {
@@ -21,7 +20,9 @@ func main() {
 		return
 	}
 
-	defer ln.Close()
+	defer func() {
+		_ = ln.Close()
+	}()
 	for {
 		c, err := ln.Accept()
 		if err != nil {
@@ -29,7 +30,7 @@ func main() {
 			continue
 		}
 		go func(c net.Conn) {
-			clientHelloMsg, err := tls.ReadClientHello(c)
+			clientHelloMsg, err := ReadClientHello(c)
 			if err != nil {
 				log.Printf("Error accepting new connection - %v\n", err)
 			}
@@ -45,27 +46,29 @@ func main() {
 				return
 			}
 			log.Printf("connected to %s\n", dst)
-			defer conn.Close()
+			defer func() {
+				_ = conn.Close()
+			}()
 
 			log.Printf("clientHellowMsg len: %d\n", len(clientHelloMsg.RawData))
-			len, err := io.WriteString(conn, string(clientHelloMsg.RawData))
-			log.Printf("1: write len: %d\n", len)
+			length, err := io.WriteString(conn, string(clientHelloMsg.RawData))
+			log.Printf("1: write len: %d\n", length)
 			if err != nil {
 				log.Printf("1: error: %s\n", err.Error())
 			}
 
 			ch := make(chan int, 2)
 			go func() {
-				len ,err := io.Copy(c, conn)
-				log.Printf("2: read len: %d\n", len)
+				length, err := io.Copy(c, conn)
+				log.Printf("2: read len: %d\n", length)
 				if err != nil {
 					log.Printf("2: error: %s\n", err.Error())
 				}
 				ch <- 1
 			}()
 			go func() {
-				len, err := io.Copy(conn, c)
-				log.Printf("3: write len: %d\n", len)
+				length, err := io.Copy(conn, c)
+				log.Printf("3: write len: %d\n", length)
 				if err != nil {
 					log.Printf("3: error: %s\n", err.Error())
 				}

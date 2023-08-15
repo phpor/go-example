@@ -5,10 +5,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 func main() {
-	scan()
+	//scan()
+	s, prefix, err := bufio.NewReader(strings.NewReader("aaa")).ReadLine()
+	fmt.Printf("content: %s\n", string(s))
+	fmt.Printf("prefix: %t\n", prefix)
+	if err != nil {
+		fmt.Printf("err: %s\n", err.Error())
+	}
 }
 func readString() {
 	stdin := bufio.NewReader(os.Stdin)
