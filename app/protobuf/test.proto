@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "proto/test";
+
+message Hobby {
+  string name=1;
+}
+
+message Person {
+  string name = 1;
+  Hobby  hobby = 2;
+}
+
