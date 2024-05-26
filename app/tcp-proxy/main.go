@@ -17,9 +17,11 @@ var replaceString = map[string]string{}
 var ch chan error
 
 func main() {
-	addr := ""
+	tcpAddr := ""
+	httpAddr := ""
 	replaceStr := ""
-	flag.StringVar(&addr, "addr", ":9393", "listen addr")
+	flag.StringVar(&tcpAddr, "tcp_addr", ":9393", "tcp proxy listen addr")
+	flag.StringVar(&httpAddr, "http_addr", ":9494", "http server listen addr")
 	flag.StringVar(&replaceStr, "replace", "aaa->bbb", "split by ->")
 	flag.Parse()
 	ss := strings.Split(replaceStr, "->")
@@ -28,7 +30,7 @@ func main() {
 	}
 
 	ch = make(chan error, 1)
-	go server(addr)
+	go server(tcpAddr)
 	if err := <-ch; err != nil {
 		return
 	}
@@ -38,20 +40,26 @@ func main() {
 		_, _ = writer.Write([]byte("ok"))
 		return
 	})
-	_ = http.ListenAndServe(":9494", nil)
+	ln, err := net.Listen("tcp", httpAddr)
+	if err != nil {
+		log.Println(fmt.Sprintf("http server start fail: %s", err.Error()))
+		return
+	}
+	log.Println(fmt.Sprintf("http server start success: %s", httpAddr))
+	_ = http.Serve(ln, nil)
 }
 
 // server tcp listen 端口9393， 有连接进来时，
-func server(addr string) {
+func server(tcpAddr string) {
 
-	ln, err := net.Listen("tcp", addr)
+	ln, err := net.Listen("tcp", tcpAddr)
 	if err != nil {
-		log.Println(fmt.Sprintf("server start fail: %s", err.Error()))
+		log.Println(fmt.Sprintf("tcp proxy server start fail: %s", err.Error()))
 		ch <- err
 		return
 	}
 	close(ch)
-	log.Println("server start")
+	log.Println("tcp poxy server started: " + tcpAddr)
 
 	for {
 		conn, err := ln.Accept()
