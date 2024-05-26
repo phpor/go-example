@@ -2,32 +2,30 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 )
 
 var port string
-var replaceString = map[string]string{}
+var replaces = replaceMap{}
 var ch chan error
 
 func main() {
 	tcpAddr := ""
 	httpAddr := ""
-	replaceStr := ""
 	flag.StringVar(&tcpAddr, "tcp_addr", ":9393", "tcp proxy listen addr")
 	flag.StringVar(&httpAddr, "http_addr", ":9494", "http server listen addr")
-	flag.StringVar(&replaceStr, "replace", "aaa->bbb", "split by ->")
+	flag.Var(&replaces, "replace", "split by -> ; eg: aaa->bbb means replace aaa to bbb")
 	flag.Parse()
-	ss := strings.Split(replaceStr, "->")
-	if len(ss) == 2 {
-		replaceString[ss[0]] = ss[1]
-	}
+	log.Printf("replaces: %s", replaces)
 
 	ch = make(chan error, 1)
 	go server(tcpAddr)
@@ -35,9 +33,30 @@ func main() {
 		return
 	}
 	http.HandleFunc("/update-port", func(writer http.ResponseWriter, request *http.Request) {
-		port = request.FormValue("port")
-		log.Println("update port:", port)
-		_, _ = writer.Write([]byte("ok"))
+		p := request.FormValue("port")
+		if n, err := strconv.Atoi(p); err != nil || n <= 0 || n >= 65535 {
+			log.Printf("update port to %s fail", p)
+			_, _ = writer.Write([]byte(fmt.Sprintf("port %s is invalid", p)))
+		} else {
+			log.Println("update port:", n)
+			port = p
+			_, _ = writer.Write([]byte("ok"))
+		}
+		return
+	})
+	http.HandleFunc("/replace", func(writer http.ResponseWriter, request *http.Request) {
+		from := request.FormValue("from")
+		to := request.FormValue("to")
+		if from == "" {
+			_, _ = writer.Write([]byte("from can not empty"))
+			return
+		}
+		replaces[from] = to
+		_, _ = writer.Write([]byte(fmt.Sprintf("success: replace %s to %s", from, to)))
+		return
+	})
+	http.HandleFunc("/replace/show", func(writer http.ResponseWriter, _ *http.Request) {
+		_, _ = writer.Write([]byte(fmt.Sprintf("%s", replaces.String())))
 		return
 	})
 	ln, err := net.Listen("tcp", httpAddr)
@@ -80,24 +99,26 @@ func handle(conn net.Conn) {
 		_ = conn.Close()
 		log.Printf("finished connection %s\n", addr)
 	}()
-	// 创建一个连接到 127.0.0.1 的 1234 端口的连接
+	log.Printf("received connection %s -> %s\n", conn.RemoteAddr(), conn.LocalAddr())
+
+	// 创建到上游的连接
 	remote, err := net.Dial("tcp", addr)
 	if err != nil {
 		log.Println(fmt.Sprintf("connect %s fail: %s", addr, err.Error()))
 		return
 	}
-	defer func() {
-		_ = remote.Close()
-	}()
+	log.Printf("connect %s success", addr)
 
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(2) // 任何一边断开就可以退出了
 	// 启动两个 goroutine 来复制数据
 	go func() {
 		defer wg.Done()
 		if _, err := io.Copy(conn, replaceFilter(remote)); err != nil {
 			log.Println(err)
 		}
+		_ = remote.Close()
+		log.Printf("closed connection %s -> %s\n", remote.LocalAddr(), remote.RemoteAddr())
 
 	}()
 
@@ -106,32 +127,59 @@ func handle(conn net.Conn) {
 		if _, err := io.Copy(remote, replaceFilter(conn)); err != nil {
 			log.Println(err)
 		}
+		_ = conn.Close()
+		log.Printf("closed connection %s -> %s\n", conn.RemoteAddr(), conn.LocalAddr())
+
 	}()
 	wg.Wait()
 }
 
-// replaceFilter 创建一个流过滤器，将输入的io.Reader中的"aa"替换为"bbbb"。
+// replaceFilter 创建一个流过滤器，可以自定义替换流中的字符串。
 func replaceFilter(r io.Reader) io.Reader {
 	return &replaceReader{r: r, buf: make([]byte, 32*1024)}
 }
 
 type replaceReader struct {
-	r   io.Reader
-	buf []byte
+	r       io.Reader
+	buf     []byte
+	replace map[string]string
 }
 
 func (r *replaceReader) Read(p []byte) (int, error) {
-	n, err := r.r.Read(r.buf)
+	n, err := r.r.Read(p)
 	if err != nil {
 		return n, err
 	}
-	replaced := r.buf[:n]
-	for k, v := range replaceString {
-		replaced = bytes.ReplaceAll(replaced, []byte(k), []byte(v))
-	}
-	newData := replaced
+	log.Printf("before replace: %s\n", string(p[:n]))
+	newData := replaceBuf(p[:n]) //todo: 如果replace之后变大就比较麻烦了
+	log.Printf("after replace: %s\n\n", string(newData))
 
 	// 将处理后的内容拷贝到输出缓冲区
 	copied := copy(p, newData)
 	return copied, nil
+}
+
+func replaceBuf(buf []byte) []byte {
+	for k, v := range replaces {
+		buf = bytes.ReplaceAll(buf, []byte(k), []byte(v))
+	}
+	return buf
+}
+
+type replaceMap map[string]string
+
+func (r *replaceMap) String() string {
+	return fmt.Sprintf("%v", *r)
+}
+
+func (r *replaceMap) Set(s string) error {
+	ss := strings.Split(s, "->")
+	if len(ss) != 2 {
+		return errors.New("value must be like aaa->bbb")
+	}
+	if *r == nil {
+		*r = map[string]string{}
+	}
+	(*r)[ss[0]] = ss[1]
+	return nil
 }
