@@ -22,10 +22,5 @@ else ifeq ($(PLATFORM),MACOS)
 endif
 	cp libsay_* ../sdk/
 
-#
-all:
-	if [[ $(PLATFORM) == "LINUX" ]]; then \
-		cc -g -o say_linux.o -c say.c && ar rcs libsay_linux.a say_linux.o \
-	elif [[ $(PLATFORM) == "MACOS" ]]; then \
-		cc -g -o say_darwin.o -c say.c && ar rcs libsay_darwin.a say_darwin.o \
-	fi
+clean:
+	rm -rf *.o *.a
