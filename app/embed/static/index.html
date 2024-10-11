@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test embed</title>
+    <script src="main.js"></script>
+</head>
+<body>
+<h1>Hello <span id="name"></span></h1>
+<ol>
+    <li>//go:embed static/*  指令的go: 前后都不要有空格</li>
+    <li>go:embed的缺点就是测试的时候修改完静态文件需要重启进程</li>
+    <li>go:embed的优点就是打包发布很方便，打到一个文件就行</li>
+</ol>
+
+</body>
+</html>
