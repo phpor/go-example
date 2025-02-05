@@ -1,5 +1,7 @@
 package main
 
+import "strconv"
+
 // 泛型
 // 对于Stringify函数，泛型的收益在于静态类型检查，至于执行性能应该没有改善
 // 对于Max函数，泛型的使用使得不需要做类型转换，执行性能应该有所改善
@@ -16,7 +18,7 @@ func Stringify[T int | string](s T) string {
 	case string:
 		return v
 	case int:
-		return string(v)
+		return strconv.Itoa(v)
 	default:
 		return ""
 	}
