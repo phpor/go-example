@@ -46,20 +46,27 @@ func (g *GUI) createUI() {
 	g.processBtn = widget.NewButton("开始处理", g.processFiles)
 	btnBox := container.NewHBox(selectBtn, g.processBtn)
 
+	// 创建表头
+	header := container.NewHBox(
+		widget.NewLabel("文件"),
+		layout.NewSpacer(),
+		widget.NewLabel("状态"),
+	)
+
 	// 创建文件列表
 	g.list = widget.NewList(
 		func() int { return len(g.fileList) },
 		func() fyne.CanvasObject {
 			return container.NewHBox(
-				widget.NewLabel("模板"),
+				widget.NewLabel("模板"), // 这一行可以删除，因为我们使用表头
 				layout.NewSpacer(),
-				widget.NewLabel("状态"),
+				widget.NewLabel("状态"), // 这一行可以删除，因为我们使用表头
 			)
 		},
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
 			cont := obj.(*fyne.Container)
 			label := cont.Objects[0].(*widget.Label)
-			status := cont.Objects[2].(*widget.Label)
+			status := cont.Objects[1].(*widget.Label) // 修改索引以匹配新的布局
 
 			item := g.fileList[id]
 			label.SetText(truncatePath(item.Path, 50))
@@ -80,8 +87,14 @@ func (g *GUI) createUI() {
 		},
 	)
 
-	// 布局设置
-	content := container.NewBorder(btnBox, nil, nil, nil, g.list)
+	// 将表头和列表组合在一起
+	listWithHeader := container.NewVBox(
+		header,
+		g.list,
+	)
+
+	// 确保在你的应用中使用 listWithHeader 而不是直接使用 g.list
+	content := container.NewBorder(btnBox, nil, nil, nil, listWithHeader)
 	g.window.SetContent(content)
 }
 
