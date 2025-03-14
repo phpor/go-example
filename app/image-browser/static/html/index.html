@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>image</title>
+    <style>
+        .image-list {
+
+        }
+    </style>
+</head>
+<body>
+<div>
+<div id="list" style="border: solid 1px">
+    {{ range .dir }}
+    <li> <a href="/?path={{.}}">{{ . }} </a> </li>
+    {{ end }}
+<div id="images">
+    {{ range .image }}
+    <li class="image-list" >/images/{{ . }}</li>
+    {{ end }}
+</div>
+</div>
+<div >
+    <img src="" id="image" style="display: none"/>
+</div>
+</div>
+<script src="/static/js/image.js"></script>
+</body>
+</html>
