@@ -31,8 +31,9 @@ type GUI struct {
 func main() {
 	myApp := app.NewWithID("encryptor")
 	gui := &GUI{
-		app:    myApp,
-		window: myApp.NewWindow("CSV文件处理器"),
+		app:      myApp,
+		window:   myApp.NewWindow("CSV文件处理器"),
+		fileList: make([]FileStatus, 0),
 	}
 
 	gui.createUI()
@@ -43,8 +44,13 @@ func main() {
 func (g *GUI) createUI() {
 	// 创建操作按钮
 	selectBtn := widget.NewButton("选择CSV文件", g.selectFiles)
+	selectDirBtn := widget.NewButton("选择目录", g.selectDirectory)
 	g.processBtn = widget.NewButton("开始处理", g.processFiles)
-	btnBox := container.NewHBox(selectBtn, g.processBtn)
+	processDirBtn := widget.NewButton("处理目录", g.processDirectory)
+	btnBox := container.NewHBox(selectBtn, selectDirBtn, g.processBtn, processDirBtn)
+	// 隐藏selectBtn 和 processBtn
+	selectBtn.Hide()
+	g.processBtn.Hide()
 
 	// 创建表头
 	header := container.NewHBox(
@@ -53,6 +59,7 @@ func (g *GUI) createUI() {
 		widget.NewLabel("状态"),
 	)
 
+	// 创建文件列表
 	// 创建文件列表
 	g.list = widget.NewList(
 		func() int { return len(g.fileList) },
@@ -66,7 +73,7 @@ func (g *GUI) createUI() {
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
 			cont := obj.(*fyne.Container)
 			label := cont.Objects[0].(*widget.Label)
-			status := cont.Objects[1].(*widget.Label) // 修改索引以匹配新的布局
+			status := cont.Objects[2].(*widget.Label) // 修改索引以匹配新的布局
 
 			item := g.fileList[id]
 			label.SetText(truncatePath(item.Path, 50))
@@ -86,18 +93,24 @@ func (g *GUI) createUI() {
 			}
 		},
 	)
-
+	// 创建列表容器
+	scroll := container.NewScroll(g.list)
+	scroll.SetMinSize(fyne.NewSize(0, 500))
+	listContainer := container.NewPadded(scroll)
 	// 将表头和列表组合在一起
-	listWithHeader := container.NewVBox(
-		header,
-		g.list,
+	listWithHeader := container.NewVBox(header, listContainer)
+
+	// 设置窗口内容
+	content := container.NewBorder(
+		btnBox,
+		nil,
+		nil,
+		nil,
+		listWithHeader,
 	)
-
-	// 确保在你的应用中使用 listWithHeader 而不是直接使用 g.list
-	content := container.NewBorder(btnBox, nil, nil, nil, listWithHeader)
 	g.window.SetContent(content)
-}
 
+}
 func (g *GUI) selectFiles() {
 	d := dialog.NewFileOpen(func(uc fyne.URIReadCloser, err error) {
 		if err != nil || uc == nil {
@@ -128,6 +141,66 @@ func (g *GUI) selectFiles() {
 	d.SetFilter(storage.NewExtensionFileFilter([]string{".csv"}))
 	// 允许选择多个文件
 	d.Show()
+}
+
+func (g *GUI) selectDirectory() {
+	d := dialog.NewFolderOpen(func(uri fyne.ListableURI, err error) {
+		if err != nil || uri == nil {
+			return
+		}
+
+		files, err := uri.List()
+		if err != nil {
+			return
+		}
+
+		g.mu.Lock()
+		defer g.mu.Unlock()
+
+		for _, file := range files {
+			if !strings.HasSuffix(strings.ToLower(file.Name()), ".csv") {
+				continue
+			}
+
+			filePath := file.Path()
+			// 防止重复添加
+			exists := false
+			for _, f := range g.fileList {
+				if f.Path == filePath {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				g.fileList = append(g.fileList, FileStatus{
+					Path:   filePath,
+					Status: "等待中",
+				})
+			}
+		}
+		g.list.Refresh()
+	}, g.window)
+	d.Show()
+}
+
+func (g *GUI) processDirectory() {
+	go func() {
+		g.mu.Lock()
+		defer g.mu.Unlock()
+
+		for i := range g.fileList {
+			g.updateStatus(i, "处理中")
+
+			// 模拟处理过程
+			time.Sleep(2 * time.Second)
+
+			// 这里添加实际处理逻辑
+			// 处理成功时：
+			g.updateStatus(i, "已完成")
+			// 或处理失败时：
+			// g.updateStatus(i, "错误: 原因说明")
+		}
+	}()
 }
 
 func (g *GUI) processFiles() {
