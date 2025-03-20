@@ -20,7 +20,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		forkAndExec(fds)
+		forkAndExec(fds[1])
 		wg.Done()
 	}()
 	in := bufio.NewReader(os.Stdin)
@@ -39,17 +39,16 @@ func main() {
 			}
 		}
 	}
+	_ = unix.Close(fds[0]) // 父进程关闭写入端
 	wg.Wait()
+	_ = unix.Close(fds[1]) // 子进程关闭读取端
 }
 
-func forkAndExec(fds [2]int) {
+func forkAndExec(fd int) {
 	cmd := exec.Command("/bin/cat")
-	cmd.Stdin = os.NewFile(uintptr(fds[0]), "stdin")
+	cmd.Stdin = os.NewFile(uintptr(fd), "stdin") // 子进程从fds[1]读取
 	cmd.Stdout = os.Stdout
-	// cmd.Stdout = os.NewFile(uintptr(fds[1]), "stdout")
-	// 让 cmd 不继承文件描述符
 
-	// cmd.ExtraFiles = []*os.File{os.NewFile(uintptr(fds[1]), "extra")}
 	err := cmd.Start()
 	if err != nil {
 		fmt.Println("Error starting child process:", err)
