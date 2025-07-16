@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SSE客户端示例</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			max-width: 800px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+		#events {
+			border: 1px solid #ddd;
+			padding: 10px;
+			height: 300px;
+			overflow-y: scroll;
+		}
+		.controls {
+			margin: 10px 0;
+		}
+		.controls button {
+			padding: 5px 10px;
+			margin-right: 5px;
+		}
+	</style>
+</head>
+<body>
+	<h1>服务器发送事件(SSE)示例</h1>
+	<div class="controls">
+		<button id="startBtn">启动连接</button>
+		<button id="stopBtn">停止连接</button>
+		<button id="clearBtn">清屏</button>
+	</div>
+	<div id="events"></div>
+
+	<script>
+		const eventOutput = document.getElementById('events');
+		let eventSource = null;
+
+		// 启动连接
+		document.getElementById('startBtn').addEventListener('click', function() {
+			if (!eventSource || eventSource.readyState === EventSource.CLOSED) {
+				eventSource = new EventSource('/events');
+				eventOutput.innerHTML += '<p>SSE连接已启动</p>';
+				
+				eventSource.onmessage = function(e) {
+					const p = document.createElement('p');
+					p.textContent = `收到事件: ${e.data}`;
+					eventOutput.appendChild(p);
+					eventOutput.scrollTop = eventOutput.scrollHeight;
+				};
+				
+				eventSource.onerror = function() {
+					eventOutput.innerHTML += '<p style="color:red">连接错误</p>';
+				};
+			}
+		});
+
+		// 停止连接
+		document.getElementById('stopBtn').addEventListener('click', function() {
+			if (eventSource) {
+				eventSource.close();
+				eventOutput.innerHTML += '<p style="color:blue">SSE连接已停止</p>';
+			}
+		});
+
+		// 清屏
+		document.getElementById('clearBtn').addEventListener('click', function() {
+			eventOutput.innerHTML = '';
+		});
+
+		// 初始自动连接
+		document.getElementById('startBtn').click();
+	</script>
+</body>
+</html>
