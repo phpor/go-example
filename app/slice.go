@@ -13,7 +13,24 @@ func slice_is_readonly(ss []string) {
 	fmt.Printf("ss in func: %p\n", ss) // slice 通过参数传递时是传地址的
 }
 func main() {
-	subSlice()
+	rangeSlice()
+}
+
+func rangeSlice() {
+	is := []int{1,3,5,7,9,11}
+	printIs := func() {
+		for j := 0; j < 10 ;j++{
+			for _, i := range is {
+				fmt.Printf("%d  ", i)
+			}
+			fmt.Println()
+		}
+	}
+	printIs()
+	is = append(is, 13)
+	is = append(is, 15)
+	is = append(is, 17)
+	printIs()
 }
 
 func subSlice() {

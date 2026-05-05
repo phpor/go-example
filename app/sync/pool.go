@@ -19,7 +19,7 @@ func pool() error {
 		i++
 	}
 	runtime.GC() // go1.11一次gc就可以把pool中的对象清空
-	runtime.GC() // go1.14可以通过两次gc把pool中的对象清空
+	//runtime.GC() // go1.14可以通过两次gc把pool中的对象清空
 	w := func() {
 		i := p.Get().(int)
 		println(i)

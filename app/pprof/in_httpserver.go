@@ -1,10 +1,10 @@
 package main
 
 import (
-	_ "net/http/pprof"
-	"net/http"
-	"io"
 	"crypto/des"
+	"io"
+	"net/http"
+	_ "net/http/pprof"
 	"runtime"
 )
 
@@ -13,10 +13,10 @@ func HelloServer(w http.ResponseWriter, req *http.Request) {
 }
 
 func UseCpu(w http.ResponseWriter, req *http.Request) {
-	use_cpu()
+	useCpu()
 }
 func UseNet(w http.ResponseWriter, req *http.Request) {
-	use_net()
+	useNet()
 }
 func main() {
 	http.HandleFunc("/", HelloServer)
@@ -24,12 +24,12 @@ func main() {
 	http.HandleFunc("/usenet", UseNet)
 	http.ListenAndServe(":12345", nil)
 }
-func use_net() {
+func useNet() {
 	for i := 0; i < 10; i++ {
 		http.Get("http://www.sina.com.cn/")
 	}
 }
-func use_cpu() {
+func useCpu() {
 	for i := 0; i < 10; i++ {
 		c, err := des.NewCipher([]byte("12345678"))
 		if err != nil {

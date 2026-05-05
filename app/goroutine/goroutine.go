@@ -6,10 +6,29 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
 func main() {
+	test2()
+}
+
+func test2() {
+	wg := &sync.WaitGroup{}
+	for i := 0; i < 5; i++ {
+		tmp := make(map[string]int, 0)
+		tmp["key"] = i
+		wg.Add(1)
+		go func() {
+			fmt.Printf("%v\n", tmp)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+
+func test1() {
 	ch := make(chan int)
 	task("A", ch)
 	task("B", ch)

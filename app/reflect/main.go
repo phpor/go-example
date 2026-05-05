@@ -20,13 +20,29 @@ type Obj struct {
 func (o *Obj) Say() {
 	fmt.Printf("say some thing")
 }
-
-func main() {
-	testInject()
+func (o *Obj) TestArgs(a int, b bool) {
+	fmt.Printf("a: %d b: %t\n",a , b)
 }
 
-func testReflectAndSet() {
 
+func main() {
+	c := &Obj{}
+	//t := reflect.TypeOf(c)
+	v := reflect.ValueOf(c)
+	args1 := v.MethodByName("TestArgs")
+	//args2, ok := t.MethodByName("TestArgs")
+	//if !ok {
+	//	fmt.Printf("no method")
+	//	return
+	//}
+	//f := reflect.TypeOf(args1.Type())
+	println(args1.Type().NumIn())
+
+
+
+}
+
+func test1() {
 	obj := &Obj{
 		A: "",
 		B: "",

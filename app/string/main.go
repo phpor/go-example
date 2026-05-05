@@ -11,7 +11,23 @@ type MyStr struct {
 }
 
 func main() {
-	substr()
+	if InSlice("aaa", []string{"aaa"}) {
+		println("good")
+	}
+}
+
+func InSlice(s string, ss []string) bool {
+	for _, _s := range ss {
+		if s == _s {
+			return true
+		}
+	}
+	return false
+}
+
+func intSlice() {
+	a := []int{1,2,3}
+	fmt.Printf("%d", a)
 }
 
 func a() {

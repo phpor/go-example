@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-
 	println(strings.Split("", ":")[0])
 }
 

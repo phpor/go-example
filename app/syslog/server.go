@@ -71,6 +71,7 @@ func unixStream(addr string, fp io.Writer) error {
 	if err != nil {
 		return err
 	}
+	_ = os.Chmod(addr, 0666)
 	for {
 		c, err := l.Accept()
 		if err != nil {
@@ -101,6 +102,7 @@ func unixGram(addr string, fp io.Writer) error {
 	if err != nil {
 		return err
 	}
+	_ = os.Chmod(addr, 0666)
 	buf := make([]byte, 65535)
 	for {
 		l.SetReadDeadline(time.Now().Add(10 * time.Second))
