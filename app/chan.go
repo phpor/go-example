@@ -48,6 +48,7 @@ func chan3() {
 		i++
 	}
 	// chan 必须 close，否则，chan中会读出空值，而且，空值不会触发for循环终止，或许会检测到死锁而退出
+	// chan close 后，也会读出空值，通常使用 for v := range ch {} 来消费，这时的close(ch) 可以触发for循环退出
 	// chan 被 close 时，不会影响其中未被读取的消息
 	close(msg)
 

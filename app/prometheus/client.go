@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/ffmt.v1"
+	"io"
 	"net/http"
 	"net/url"
 	"runtime/debug"
@@ -68,7 +68,12 @@ func (c *Client) query(url string, result interface{}) error {
 		return err
 	}
 
-	defer r.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(r.Body)
 
 	err = json.NewDecoder(r.Body).Decode(result)
 	if err != nil {
@@ -91,7 +96,6 @@ func (c *Client) queryMetric(query string) (*QueryInfo, error) {
 
 	err = c.query(u.String(), &info)
 	if err != nil {
-		ffmt.Puts(info)
 		return info, err
 	}
 	return info, nil

@@ -5,6 +5,10 @@ import (
 )
 
 func main() {
+	interfaceArg()
+}
+
+func interfaceArg2() {
 	c := &CC{}
 	c.f = func(ib IA) {
 		ib.Say()
@@ -76,23 +80,51 @@ type Writer interface {
 
 // ====================================================
 type Messager interface {
-	String() string
 }
+
 type SimpleMessage struct {
+	msg string
 }
 
 // 可以看出，无论对象还是对象指针都实现了String方法
-func (this SimpleMessage) String() string {
-	return "对于接口参数在运行时，传递的是 值 还是 地址，取决于运行时传递的是 值 还是 地址，定义的时候不要写成接口的指针"
+// "对于接口参数在运行时，传递的是 值 还是 地址，取决于运行时传递的是 值 还是 地址，定义的时候不要写成接口的指针"
+func (sm *SimpleMessage) String() string {
+	return sm.msg
 }
+
+// 可以看出，无论对象还是对象指针都实现了String方法
+func (sm *SimpleMessage) SetMsg(msg string)  {
+	sm.msg = msg
+}
+
 
 func printMessager(m Messager, obj bool) {
 	if obj {
-		fmt.Printf("%p\n", &m) // 如果传入的是对象
+		s := m.(SimpleMessage)
+		fmt.Printf("%p\n", &s) // 如果传入的是对象
 	} else {
-		fmt.Printf("%p\n", m) // 如果传入的是指针
+		// 如果传入的是指针, 那么，函数外面打印指针是一个"指针值"，这里的%p 也仅仅是把 m 用指针的格式打印而已
+		// 而且，这个 m 看起来是接口本身，但是，外面看到的是被fmt.Printf从接口的data中解析到的数据的真实值
+		fmt.Printf("%p\n", m)
 	}
-	fmt.Println(m.String())
+
+}
+
+func setMsg(m Messager, msg string) {
+	if o, ok := m.(SimpleMessage); ok {
+		(&o).SetMsg(msg)
+	}
+	if o, ok := m.(*SimpleMessage); ok {
+		o.SetMsg(msg)
+	}
+}
+
+func interfaceArg3() {
+	obj := SimpleMessage{}
+	setMsg(obj, "值传递") // 值传递是一个副本
+	fmt.Println("值传递给接口参数时: ", obj.String())
+	setMsg(&obj, "指针传递")
+	fmt.Println("指针传递给接口参数时: ", obj.String())
 }
 
 func interfaceArg() {

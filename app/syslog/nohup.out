@@ -1,0 +1,20 @@
+panic: listen unix /tmp/mylog: bind: address already in use
+
+goroutine 1 [running]:
+main.main()
+	/Users/junjie2/data1/github.com/phpor/go-example/app/syslog/server.go:17 +0x1df
+panic: open /var/log/message: permission denied
+
+goroutine 1 [running]:
+main.main()
+	/Users/junjie2/data1/github.com/phpor/go-example/app/syslog/server.go:24 +0x28e
+panic: listen unix /tmp/mylog: bind: address already in use
+
+goroutine 1 [running]:
+main.main()
+	/Users/junjie2/data1/github.com/phpor/go-example/app/syslog/server.go:19 +0x29e
+panic: listen unix /tmp/mylog: bind: address already in use
+
+goroutine 1 [running]:
+main.main()
+	/Users/junjie2/data1/github.com/phpor/go-example/app/syslog/server.go:24 +0x291

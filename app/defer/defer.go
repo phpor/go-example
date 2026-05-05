@@ -7,9 +7,15 @@ import (
 
 func main() {
 	defer func() {
-		myDefer()
+		println("exec")
 	}()
-	panic("haha")
+	println("main")
+}
+
+func f2() func() {
+	return func() {
+		println("exec")
+	}
 }
 
 func myDefer() {

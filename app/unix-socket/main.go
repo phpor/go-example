@@ -49,6 +49,9 @@ func forkAndExec(fd int) {
 	cmd.Stdin = os.NewFile(uintptr(fd), "stdin") // 子进程从fds[1]读取
 	cmd.Stdout = os.Stdout
 
+	// 设置子进程只继承需要的文件描述符
+	cmd.ExtraFiles = []*os.File{os.NewFile(uintptr(fd), "socket")}
+
 	err := cmd.Start()
 	if err != nil {
 		fmt.Println("Error starting child process:", err)

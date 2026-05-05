@@ -18,9 +18,37 @@ type Team struct {
 	Leader   *person // 指针也能被填充
 	Follower person
 }
+type WebViewUa struct {
+	WebViewUa string `json:"webViewUa"`
+	Model     string `json:"model"`
+	Language  string `json:"language"`
+}
+type UserTagResponseData struct {
+	Idfa    string `json:"idfa,omitempty"`
+	GxCaid  string `json:"gx_caid,omitempty"`
+	AliAAID string `json:"ali_aaid,omitempty"`
+	RyCaid  string `json:"ry_caid,omitempty"` // 实为PAID
+
+	Imei      string `json:"imei,omitempty"`
+	AndroidID string `json:"androidId,omitempty"`
+	Oaid      string `json:"oaid,omitempty"`
+
+	WebViewUa *WebViewUa `json:"webview_ua,omitempty"`
+	Data      map[string]string
+}
+
+type Person struct {
+	name string `default:"phpor"`
+}
 
 func main() {
-	testCase()
+	//a := []rune("李俊杰")
+	//println(string(a[:1]))
+	//b, _ := json.Marshal(UserTagResponseData{Data: map[string]string{}})
+	//println(string(b))
+	p := &Person{}
+	json.Unmarshal([]byte("{}"), p)
+	fmt.Printf("%#v", p)
 }
 
 type StringOld string

@@ -5,16 +5,36 @@ package main
 import (
 	"fmt"
 	"sort"
+	"time"
 )
 
 func main() {
+	syncMap2()
+
+}
+
+// map  并发读写会panic，不仅仅是并发写，一个读一个写就会panic
+func syncMap2() {
+	a := map[string]int{}
+	go func() {
+		for {
+			if _,ok := a["a"];ok {
+				print(1)
+			}
+		}
+	}()
+	for {
+		a["a"] = 1
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func returnMapTest() {
 	m := map[string]int{"phpor": 1}
 	n := returnMap(m)
 	m["age"] = 2
 	fmt.Printf("%v", n)
-
 }
-
 func returnMap(a map[string]int) map[string]int {
 	return a
 }

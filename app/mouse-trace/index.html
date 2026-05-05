@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鼠标轨迹重放</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #container {
+            position: relative;
+            width: 740px;
+            height: 520px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            background-image: url('login.jpg');
+        }
+        #traceCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #cursor {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+        }
+        textarea {
+            width: 800px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #progress {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>鼠标轨迹重放</h1>
+    <textarea id="inputData" placeholder="输入轨迹数据，格式：[[x0,y0,t0],[x1,y1,t1],...]"></textarea>
+    <br>
+    <button id="replayBtn">重放轨迹</button>
+    <div id="progress">0/0 (0%)</div>
+    <div id="container">
+        <canvas id="traceCanvas"></canvas>
+        <div id="cursor" ></div>
+    </div>
+
+    <script>
+        document.getElementById('replayBtn').addEventListener('click', replayTrace);
+
+        function replayTrace() {
+            const input = document.getElementById('inputData').value.trim();
+            if (!input) {
+                alert('请输入轨迹数据');
+                return;
+            }
+
+            let points;
+            try {
+                points = JSON.parse(input);
+                if (!Array.isArray(points) || points.length === 0) {
+                    throw new Error('数据格式错误');
+                }
+            } catch (e) {
+                alert('数据格式错误: ' + e.message);
+                return;
+            }
+
+            // 计算绝对坐标和时间
+            const absolutePoints = [points[0]];
+            for (let i = 1; i < points.length; i++) {
+                const prev = absolutePoints[i-1];
+                const current = points[i];
+                absolutePoints.push([
+                    prev[0] + current[0],
+                    prev[1] + current[1],
+                    prev[2] + current[2]
+                ]);
+            }
+
+            const cursor = document.getElementById('cursor');
+            const progress = document.getElementById('progress');
+            const canvas = document.getElementById('traceCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 740;
+            canvas.height = 520;
+            
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 3]);
+            
+            const totalPoints = absolutePoints.length;
+            let currentIndex = 0;
+            
+            // 清除之前的轨迹
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 重置位置
+            cursor.style.left = absolutePoints[0][0] + 'px';
+            cursor.style.top = absolutePoints[0][1] + 'px';
+            progress.textContent = `1/${totalPoints} (${Math.round(100/totalPoints)}%)`;
+
+            function animate() {
+                if (currentIndex >= totalPoints - 1) {
+                    return;
+                }
+
+                const startTime = performance.now();
+                const startPoint = absolutePoints[currentIndex];
+                const endPoint = absolutePoints[currentIndex + 1];
+                const duration = endPoint[2] - startPoint[2];
+
+                function step(timestamp) {
+                    const elapsed = timestamp - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    const x = startPoint[0] + (endPoint[0] - startPoint[0]) * progress;
+                    const y = startPoint[1] + (endPoint[1] - startPoint[1]) * progress;
+                    
+                    cursor.style.left = x + 'px';
+                    cursor.style.top = y + 'px';
+                    
+                    // 绘制轨迹线
+                    if (currentIndex > 0) {
+                        ctx.beginPath();
+                        ctx.moveTo(absolutePoints[currentIndex-1][0], absolutePoints[currentIndex-1][1]);
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        currentIndex++;
+                        updateProgress();
+                        if (currentIndex < totalPoints - 1) {
+                            animate();
+                        }
+                    }
+                }
+
+                requestAnimationFrame(step);
+            }
+
+            function updateProgress() {
+                const percent = Math.round((currentIndex + 1) / totalPoints * 100);
+                progress.textContent = `${currentIndex + 1}/${totalPoints} (${percent}%)`;
+            }
+
+            animate();
+        }
+    </script>
+</body>
+</html>

@@ -9,7 +9,11 @@ import (
 )
 
 func main() {
-	xxx()
+	b, err := base64.URLEncoding.DecodeString("SoIFEVCHiAWWZFqG-uVpDDWKHjS9qJTBYBhk7ZMWQEI=")
+	if err != nil {
+		panic(err)
+	}
+	println(hex.EncodeToString(b))
 }
 
 func yyyyy() {

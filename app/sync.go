@@ -39,5 +39,6 @@ func main() {
 }
 
 func syncMap() {
+	sync.Once{}
 	sm := sync.Map{}
 }

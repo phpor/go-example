@@ -8,6 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"net/url"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -21,9 +24,128 @@ const (
 	d
 )
 
-func main() {
-	testCastError()
+var idfaRegx = regexp.MustCompile("^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$")
 
+var osRegx = regexp.MustCompile("^(iOS)?$")
+
+type aStruct struct {
+	a int
+}
+
+func getAStruct(i int) *aStruct {
+	return &aStruct{i}
+}
+
+type P struct {
+	name  string
+	store Store
+}
+
+func (p *P) Clone() *P {
+	newP := *p
+	fmt.Printf("%#v %p\n", newP, &newP)
+	return &newP
+}
+
+type Store string
+
+func main() {
+
+	testURL()
+	if os.Getenv("cmd") == "" {
+		return
+	}
+	i := 1
+	a := any(&i)
+	b := a
+	a = 2
+	defer func() {
+		if e := recover(); e != nil {
+			//println(e)
+		}
+	}()
+	time.Sleep(1000 * time.Second)
+
+	println(a, b)
+	println(a.(int), *b.(*int))
+
+	println(osRegx.MatchString(""))
+	println(osRegx.MatchString("iOS"))
+	println(osRegx.MatchString("iOS 14"))
+	//p := &P{name: "phpor", store: "henan"}
+	//
+	//p2 := p.Clone()
+	//p3 := p.Clone()
+	//p.name = "modified"
+	//p.store = "hebei"
+	//p2.name = "p3"
+	//fmt.Printf("%+v\n", p3)
+
+	//fmt.Printf("%f\n%.8f\n", 0.123456789, 0.123456789)
+	//println(1 & 3)
+	//println(idfaRegx.MatchString("00000000-0000-0000-0000-000000000000"))
+	//println(idfaRegx.MatchString("835AE407-5203-45D4-BC83-0CA825D5B677"))
+	//println(idfaRegx.MatchString("83GAE407-5203-45D4-BC83-0CA825D5B677"))
+	//println(idfaRegx.MatchString("KQZLFANH-OGHR-SWXX-WMFE-ACUKRFIZNQRC"))
+	//println(crc32.ChecksumIEEE([]byte("12d7a90e-bb7d-4069-ad6b-bb500e092c19")) % 100)
+	//var b map[string]string
+	//b = map[string]string{}
+	//t := time.Now()
+	//zone, offset := t.Zone()
+	//fmt.Printf("zone: %s  offset: %d\n", zone, offset)
+	//s := time.Now().In(time.FixedZone("china", 28800)).Format("2006-01-02 15:04:05Z07:00")
+	//println(s)
+	//print(b)
+	//MM()
+	//ch := make( chan *aStruct, 10)
+	//i := 0
+	//for i < 10 {
+	//
+	//	a := getAStruct(i)
+	//	ch <- a
+	//	i++
+	//}
+	//for a := range ch {
+	//	println(a.a)
+	//}
+
+}
+
+func testURL() {
+	o, _ := url.Parse("http://baidu.com/")
+	o.User = url.UserPassword("phpor", "pass")
+	fmt.Println(o.String())
+
+	http.Get(o.String())
+}
+
+func MM() {
+	type s struct {
+		name string
+	}
+	a := func(a int) (m *s, err error) {
+		m = nil
+		if a > 1 {
+			return nil, errors.New("aa")
+		}
+		return &s{
+			name: "phpor",
+		}, nil
+	}
+	mm, _ := a(2)
+	mm.name = "C"
+
+}
+
+func testDefer() {
+	d := func() (err error) {
+		defer func() {
+			err = errors.New("test")
+		}()
+		return nil
+	}
+	err := d()
+	fmt.Println(err.Error())
 }
 
 func testCastError() {

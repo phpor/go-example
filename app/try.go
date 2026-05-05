@@ -25,6 +25,7 @@ func tryCatch(fun func(), handler func(interface{})) {
 			handler(err)
 		}
 	}()
+	panic(111)
 	fun()
 }
 func try(fun func()) (err interface{}) {

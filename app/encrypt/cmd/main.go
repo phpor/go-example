@@ -27,7 +27,7 @@ func main() {
 	for i := 1; i < len(os.Args); i++ {
 		inputFile := os.Args[i]
 		fmt.Printf("proccessing %s ", inputFile)
-		if strings.HasSuffix(inputFile, ".encrypt") {
+		if os.Getenv("DECRYPT_MODE") == "ON" && strings.HasSuffix(inputFile, ".encrypt") {
 			err = decryptFile(inputFile)
 		} else {
 			err = encryptFile(inputFile)

@@ -8,7 +8,10 @@ import (
 var DefaultTimeFormat = "2006-01-02 15:04:05"
 
 func main() {
-	fmt.Printf("%s", time.Now())
+	now := time.Now()
+	now2 := now.In(time.FixedZone("UTC", 0))
+	fmt.Printf("%d   %d\n", now.Unix(), now.Hour())
+	fmt.Printf("%d   %d\n", now2.Unix(), now2.Hour())
 }
 
 func timeXXX() {
