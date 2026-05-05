@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -17,7 +18,10 @@ func main() {
 	fmt.Println("✅ OpenAI ↔ Anthropic 代理启动成功！")
 	fmt.Println("👉 监听地址：http://localhost:16888")
 	fmt.Println("👉 Zed 里配置 api_url = http://localhost:16888/v1")
-	_ = http.ListenAndServe(":16888", nil)
+	if err := http.ListenAndServe(":16888", nil); err != nil {
+		fmt.Fprintf(os.Stderr, "❌ 服务启动失败: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // 接收 Zed 发来的 OpenAI 格式 → 转发成 Anthropic 格式 → 返回 OpenAI 格式
